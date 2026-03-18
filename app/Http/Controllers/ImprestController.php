@@ -17,6 +17,7 @@ use App\Models\Hr\Department;
 use App\Models\Branch;
 use App\Models\BankAccount;
 use App\Models\ChartAccount;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -159,6 +160,8 @@ class ImprestController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+
         // Get current user's employee information
         $employee = \App\Models\Hr\Employee::where('user_id', Auth::id())
             ->with(['department'])
@@ -167,14 +170,17 @@ class ImprestController extends Controller
         // Only show the department that matches the logged-in user's employee department
         $departments = collect();
         if ($employee && $employee->department_id) {
-            $departments = Department::where('company_id', Auth::user()->company_id)
+            $departments = Department::where('company_id', $user->company_id)
                 ->where('id', $employee->department_id)
                 ->get();
         }
 
         $chartAccounts = ChartAccount::orderBy('account_code')->get();
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get();
 
-        return view('imprest.requests.create', compact('departments', 'chartAccounts', 'employee'));
+        return view('imprest.requests.create', compact('departments', 'chartAccounts', 'employee', 'projects'));
     }
 
     /**
@@ -184,6 +190,10 @@ class ImprestController extends Controller
     {
         $request->validate([
             'department_id' => 'required|exists:hr_departments,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'purpose' => 'required|string|max:500',
             'amount_requested' => 'required|numeric|min:0.01',
             'date_required' => 'required|date|after_or_equal:today',
@@ -339,6 +349,7 @@ class ImprestController extends Controller
                 'request_number' => ImprestRequest::generateRequestNumber(),
                 'employee_id' => $user->id,
                 'department_id' => $request->department_id,
+                'project_id' => $request->project_id,
                 'company_id' => $user->company_id,
                 'branch_id' => $branchId,
                 'purpose' => $request->purpose,
@@ -475,8 +486,11 @@ class ImprestController extends Controller
         }
 
         $chartAccounts = ChartAccount::orderBy('account_code')->get();
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get();
 
-        return view('imprest.requests.edit', compact('imprestRequest', 'departments', 'chartAccounts'));
+        return view('imprest.requests.edit', compact('imprestRequest', 'departments', 'chartAccounts', 'projects'));
     }
 
     /**
@@ -496,6 +510,10 @@ class ImprestController extends Controller
 
         $request->validate([
             'department_id' => 'required|exists:hr_departments,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'purpose' => 'required|string|max:500',
             'amount_requested' => 'required|numeric|min:0.01',
             'date_required' => 'required|date|after_or_equal:today',
@@ -521,6 +539,7 @@ class ImprestController extends Controller
 
             $imprestRequest->update([
                 'department_id' => $request->department_id,
+                'project_id' => $request->project_id,
                 'purpose' => $request->purpose,
                 'amount_requested' => $request->amount_requested,
                 'date_required' => $request->date_required,

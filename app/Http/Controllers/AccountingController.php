@@ -45,6 +45,7 @@ class AccountingController extends Controller
         $budgets = Budget::count();
         $fxRates = \App\Models\FxRate::where('company_id', $companyId)->count();
         $fxRevaluations = \App\Models\GlRevaluationHistory::where('company_id', $companyId)->count();
+        $accountingDocuments = \App\Models\AccountingDocument::where('company_id', $companyId)->count();
         
         // Petty Cash Units count
         $pettyCashUnits = \App\Models\PettyCash\PettyCashUnit::where('company_id', $companyId)->count();
@@ -79,6 +80,7 @@ class AccountingController extends Controller
             'budgets',
             'fxRates',
             'fxRevaluations',
+            'accountingDocuments',
             'pettyCashUnits',
             'accountTransfers',
             'cashflowForecasts',

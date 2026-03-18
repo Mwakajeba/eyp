@@ -16,6 +16,7 @@ class GlTransaction extends Model
         'chart_account_id',
         'customer_id',
         'supplier_id',
+        'project_id',
         'asset_id',
         'amount',
         'nature',
@@ -45,6 +46,11 @@ class GlTransaction extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function branch()

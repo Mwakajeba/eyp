@@ -862,6 +862,14 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'role:su
 Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'require.branch'])->group(function () {
     Route::get('/', [App\Http\Controllers\AccountingController::class, 'index'])->name('index');
 
+    // Accounting Documents
+    Route::get('/documents', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'index'])->name('documents.index');
+    Route::post('/documents', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/view', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'view'])->name('documents.view');
+    Route::get('/documents/{document}/edit', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'edit'])->name('documents.edit');
+    Route::put('/documents/{document}', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'update'])->name('documents.update');
+    Route::delete('/documents/{document}', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'destroy'])->name('documents.destroy');
+
     // Main Groups
     Route::get('/main-groups', [App\Http\Controllers\MainGroupController::class, 'index'])->name('main-groups.index');
     Route::get('/main-groups/create', [App\Http\Controllers\MainGroupController::class, 'create'])->name('main-groups.create');
@@ -3557,6 +3565,13 @@ Route::prefix('asset-management')->name('assets.')->middleware(['auth', 'company
 // Project Management Routes
 Route::prefix('projects')->name('projects.')->middleware(['auth', 'company.scope', 'require.branch'])->group(function () {
     Route::get('/', [ProjectController::class, 'index'])->name('index');
+
+    Route::get('/donor-projects', [ProjectController::class, 'donorProjectsIndex'])->name('donor-projects.index');
+    Route::get('/donor-projects/create', [ProjectController::class, 'donorProjectsCreate'])->name('donor-projects.create');
+    Route::post('/donor-projects', [ProjectController::class, 'storeDonorProject'])->name('donor-projects.store');
+
+    Route::get('/donor-assignments/create', [ProjectController::class, 'donorAssignmentsCreate'])->name('donor-assignments.create');
+    Route::post('/donor-assignments', [ProjectController::class, 'assignDonor'])->name('donor-assignments.store');
 });
 
 // Investment Management Routes

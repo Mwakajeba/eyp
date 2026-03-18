@@ -16,6 +16,7 @@ use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use App\Models\SystemSetting;
 use App\Models\Payment;
+use App\Models\Project;
 use App\Helpers\AmountInWords;
 use App\Models\Sales\CreditNote;
 use App\Models\Sales\Delivery;
@@ -36,6 +37,7 @@ class SalesInvoice extends Model
         'sales_order_id',
         'delivery_id',
         'customer_id',
+        'project_id',
         'invoice_date',
         'due_date',
         'status',
@@ -143,6 +145,11 @@ class SalesInvoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function items(): HasMany

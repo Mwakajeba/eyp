@@ -36,6 +36,7 @@ class Payment extends Model
         'description',
         'attachment',
         'bank_account_id',
+        'project_id',
         'payee_type',
         'payee_id',
         'payee_name',
@@ -108,6 +109,11 @@ class Payment extends Model
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     /**
@@ -795,6 +801,7 @@ class Payment extends Model
                 'chart_account_id' => $cashDepositAccountId,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $bankCreditAmount,
                 'nature' => 'debit',
                 'transaction_id' => $this->id,
@@ -823,6 +830,7 @@ class Payment extends Model
                 'chart_account_id' => $chequeIssuedAccountId,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $bankCreditAmount,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -838,6 +846,7 @@ class Payment extends Model
                 'chart_account_id' => $creditAccountId,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $bankCreditAmount,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -872,6 +881,7 @@ class Payment extends Model
                 'chart_account_id' => $whtPayableAccountId,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $whtAmountLCY,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -897,6 +907,7 @@ class Payment extends Model
                 'chart_account_id' => $vatInputAccountId,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $totalVAT,
                 'nature' => 'debit',
                 'transaction_id' => $this->id,
@@ -1018,6 +1029,7 @@ class Payment extends Model
                 'chart_account_id' => $item->chart_account_id,
                 'customer_id' => $this->customer_id,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $itemExpenseAmount,
                 'nature' => $expenseNature, // 'credit' for cash deposit, 'debit' for other methods
                 'transaction_id' => $this->id,
@@ -1131,6 +1143,7 @@ class Payment extends Model
                 GlTransaction::create([
                     'chart_account_id' => $apAccountId,
                     'supplier_id' => $this->supplier_id,
+                    'project_id' => $this->project_id,
                     'amount' => abs($fxDifference),
                     'nature' => 'credit',
                     'transaction_id' => $this->id,
@@ -1145,6 +1158,7 @@ class Payment extends Model
                 GlTransaction::create([
                     'chart_account_id' => $fxGainAccountId,
                     'supplier_id' => $this->supplier_id,
+                    'project_id' => $this->project_id,
                     'amount' => abs($fxDifference),
                     'nature' => 'credit',
                     'transaction_id' => $this->id,
@@ -1172,6 +1186,7 @@ class Payment extends Model
                 GlTransaction::create([
                     'chart_account_id' => $apAccountId,
                     'supplier_id' => $this->supplier_id,
+                    'project_id' => $this->project_id,
                     'amount' => $fxDifference,
                     'nature' => 'debit',
                     'transaction_id' => $this->id,
@@ -1186,6 +1201,7 @@ class Payment extends Model
                 GlTransaction::create([
                     'chart_account_id' => $fxLossAccountId,
                     'supplier_id' => $this->supplier_id,
+                    'project_id' => $this->project_id,
                     'amount' => $fxDifference,
                     'nature' => 'debit',
                     'transaction_id' => $this->id,

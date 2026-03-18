@@ -51,7 +51,7 @@
 
                                 <!-- Header Section -->
                                 <div class="row mb-4">
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-4">
                                         <div class="mb-3">
                                             <label for="date" class="form-label fw-bold">
                                                 <i class="bx bx-calendar me-1"></i>Date <span class="text-danger">*</span>
@@ -64,7 +64,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-4">
                                         <div class="mb-3">
                                             <label for="reference" class="form-label fw-bold">
                                                 <i class="bx bx-hash me-1"></i>Reference Number
@@ -73,6 +73,27 @@
                                                 id="reference" name="reference" value="{{ old('reference') }}"
                                                 placeholder="Enter reference number">
                                             @error('reference')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4">
+                                        <div class="mb-3">
+                                            <label for="project_id" class="form-label fw-bold">
+                                                <i class="bx bx-briefcase me-1"></i>Project
+                                            </label>
+                                            <select class="form-select select2-single @error('project_id') is-invalid @enderror"
+                                                id="project_id" name="project_id">
+                                                <option value="">None</option>
+                                                @foreach($projects as $project)
+                                                    <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                                        {{ $project->project_code ? $project->project_code . ' - ' : '' }}{{ $project->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <small class="text-muted">Optional: link this receipt voucher to a project.</small>
+                                            @error('project_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>

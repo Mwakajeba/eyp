@@ -12,6 +12,7 @@
         <h6 class="mb-0 text-uppercase">PROJECT MANAGEMENT</h6>
         <hr />
 
+
         <!-- Project Statistics & KPIs -->
         <div class="row">
             <div class="col-12 col-lg-8">
@@ -187,7 +188,7 @@
                                         </div>
                                         <h5 class="card-title">Project Setup & WBS</h5>
                                         <p class="card-text">Create projects (Internal/External/Donor), define WBS structure, budgets, and components.</p>
-                                        <a href="#" class="btn btn-primary">
+                                        <a href="{{ route('projects.donor-projects.index') }}" class="btn btn-primary">
                                             <i class="bx bx-list-ul me-1"></i> Manage Projects
                                         </a>
                                     </div>
@@ -334,7 +335,7 @@
                                         </div>
                                         <h5 class="card-title">Donor Fund Management</h5>
                                         <p class="card-text">Track disbursements, restrictions, matching recognition, and generate donor reports.</p>
-                                        <a href="#" class="btn btn-secondary">
+                                        <a href="{{ route('projects.donor-assignments.create') }}" class="btn btn-secondary">
                                             <i class="bx bx-money-withdraw me-1"></i> Manage Funds
                                         </a>
                                     </div>

@@ -101,7 +101,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="sales_order_id" class="form-label">Sales Order</label>
                                         <select class="form-select select2-single" id="sales_order_id" name="sales_order_id">
@@ -112,7 +112,24 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="project_id" class="form-label">Project</label>
+                                        <select class="form-select select2-single @error('project_id') is-invalid @enderror" id="project_id" name="project_id">
+                                            <option value="">None</option>
+                                            @foreach($projects as $project)
+                                                <option value="{{ $project->id }}" {{ old('project_id', $invoice->project_id) == $project->id ? 'selected' : '' }}>
+                                                    {{ $project->project_code ? $project->project_code . ' - ' : '' }}{{ $project->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <small class="text-muted">Optional: link this invoice to a project. If selected, customer must be assigned to the project.</small>
+                                        @error('project_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
                                     @php
                                         $functionalCurrency = \App\Models\SystemSetting::getValue('functional_currency', auth()->user()->company->functional_currency ?? 'TZS');
                                     @endphp
@@ -133,7 +150,7 @@
                                         <small class="text-muted">Currencies from FX RATES MANAGEMENT</small>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="exchange_rate" class="form-label">Exchange Rate</label>
                                         <div class="input-group">

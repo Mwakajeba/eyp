@@ -20,6 +20,7 @@ class ImprestRequest extends Model
         'request_number',
         'employee_id',
         'department_id',
+        'project_id',
         'company_id',
         'branch_id',
         'purpose',
@@ -62,6 +63,11 @@ class ImprestRequest extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(HrDepartment::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function company(): BelongsTo

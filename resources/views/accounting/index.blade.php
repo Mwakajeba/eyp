@@ -108,6 +108,28 @@
                             </div>
                             @endcan
 
+                            <!-- Documents Management -->
+                            @can('view accounting')
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card border-dark position-relative">
+                                    <div class="card-body text-center">
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                                            {{ $accountingDocuments ?? 0 }}
+                                            <span class="visually-hidden">documents count</span>
+                                        </span>
+                                        <div class="mb-3">
+                                            <i class="bx bx-folder fs-1 text-dark"></i>
+                                        </div>
+                                        <h5 class="card-title">Documents</h5>
+                                        <p class="card-text">View and upload accounting supporting documents by file type.</p>
+                                        <a href="{{ route('accounting.documents.index') }}" class="btn btn-dark">
+                                            <i class="bx bx-folder-open me-1"></i> Manage Documents
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            @endcan
+
                             <!-- Banks Management -->
                             @can('view bank accounts')
                             <div class="col-md-6 col-lg-4 mb-4">
