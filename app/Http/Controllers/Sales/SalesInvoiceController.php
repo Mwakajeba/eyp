@@ -1785,6 +1785,7 @@ class SalesInvoiceController extends Controller
             'bank_account_id' => 'nullable|integer',
             'wht_treatment' => 'nullable|in:EXCLUSIVE,INCLUSIVE,NONE',
             'wht_rate' => 'nullable|numeric|min:0|max:100',
+            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         // Resolve bank account when payment method is bank
@@ -1882,6 +1883,22 @@ class SalesInvoiceController extends Controller
                 );
 
                 $result = $receipt;
+            }
+
+            // If this payment created a receipt, attach uploaded file and propagate invoice project.
+            if ($result instanceof \App\Models\Receipt) {
+                $receiptUpdate = [
+                    'project_id' => $invoice->project_id,
+                ];
+
+                if ($request->hasFile('attachment')) {
+                    $file = $request->file('attachment');
+                    $fileName = 'sales-receipt-' . $invoice->invoice_number . '-' . time() . '.' . $file->getClientOriginalExtension();
+                    $attachmentPath = $file->storeAs('sales-receipt-attachments', $fileName, 'public');
+                    $receiptUpdate['attachment'] = $attachmentPath;
+                }
+
+                $result->update($receiptUpdate);
             }
 
             DB::commit();
@@ -2109,6 +2126,7 @@ class SalesInvoiceController extends Controller
             'chart_account_id' => 'nullable|integer',
             'bank_account_id' => 'nullable|integer',
             'payment_exchange_rate' => 'nullable|numeric|min:0.000001',
+            'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         // Resolve bank account when payment method is bank
@@ -2157,7 +2175,21 @@ class SalesInvoiceController extends Controller
                 'bank_account_id' => $request->bank_account_id,
                 'cash_deposit_id' => $cashDepositId,
                 'description' => $request->description,
+                'project_id' => $invoice->project_id,
             ]);
+
+            // Replace attachment if a new file is uploaded
+            if ($request->hasFile('attachment')) {
+                if ($payment->attachment && Storage::disk('public')->exists($payment->attachment)) {
+                    Storage::disk('public')->delete($payment->attachment);
+                }
+
+                $file = $request->file('attachment');
+                $fileName = 'sales-payment-' . $invoice->invoice_number . '-' . time() . '.' . $file->getClientOriginalExtension();
+                $attachmentPath = $file->storeAs('sales-payment-attachments', $fileName, 'public');
+
+                $payment->update(['attachment' => $attachmentPath]);
+            }
 
             // Update invoice paid amount
             $invoice->increment('paid_amount', $amountDifference);

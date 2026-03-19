@@ -1284,6 +1284,7 @@ class SalesInvoice extends Model
             'description' => $description,
             'user_id' => $userId,
             'bank_account_id' => $bankAccountId,
+            'project_id' => $this->project_id,
             'payee_type' => 'customer',
             'payee_id' => $this->customer_id,
             'payee_name' => $this->customer->name,

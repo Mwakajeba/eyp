@@ -23,7 +23,7 @@
                         <h5 class="mb-0"><i class="bx bx-edit me-2"></i>Edit Payment Details</h5>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="{{ route('sales.invoices.payment.update', $payment->hash_id) }}">
+                        <form method="POST" action="{{ route('sales.invoices.payment.update', $payment->hash_id) }}" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
                             
@@ -96,6 +96,13 @@
 
                             <div class="row">
                                 <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="attachment" class="form-label">Attachment</label>
+                                        <input type="file" class="form-control" id="attachment" name="attachment" accept=".pdf,.jpg,.jpeg,.png">
+                                        <small class="text-muted">Optional: upload new attachment to replace existing one (PDF/JPG/JPEG/PNG, max 5MB).</small>
+                                        @error('attachment') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                    </div>
+
                                     <div class="mb-3">
                                         <label for="description" class="form-label">Description</label>
                                         <textarea class="form-control" id="description" name="description" rows="3" 
