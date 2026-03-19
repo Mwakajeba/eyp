@@ -738,6 +738,16 @@ class RolePermissionSeeder extends Seeder
             'view retirement approvals',
             'approve retirement',
             'reject retirement',
+            // Store Requisitions
+            'view store requisitions',
+            'create store requisition',
+            'edit store requisition',
+            'delete store requisition',
+            'approve store requisition',
+            'reject store requisition',
+            'view store issues',
+            'view store returns',
+            'manage store requisition approval settings',
 
         ];
 

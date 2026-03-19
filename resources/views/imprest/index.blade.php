@@ -251,9 +251,9 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row text-center">
+                                            @can('manage imprest settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
-                                                    @can('manage imprest settings')
                                                     <div class="card-body text-center">
                                                         <div class="mb-3">
                                                             <i class="bx bx-cog fs-1 text-info"></i>
@@ -264,45 +264,32 @@
                                                             <i class="bx bx-cog me-1"></i> Open Settings
                                                         </button>
                                                     </div>
-                                                    @else
-                                                    <div class="card-body text-center text-muted">
-                                                        <div class="mb-3">
-                                                            <i class="bx bx-lock fs-1"></i>
-                                                        </div>
-                                                        <p class="card-text">Access denied</p>
-                                                    </div>
-                                                    @endcan
                                                 </div>
                                             </div>
+                                            @endcan
                                             <!-- Approval Settings -->
+                                            @can('manage imprest approval settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-dark position-relative">
-                                    @can('manage imprest approval settings')
-                                    <div class="card-body text-center">
-                                        <!-- Settings Icon -->
-                                        <div class="mb-3">
-                                            <i class="bx bx-cog fs-1 text-dark"></i>
-                                        </div>
-                                        <h5 class="card-title">Imprest Approval Settings</h5>
-                                        <p class="card-text">Configure multi-level approval workflows and user permissions.</p>
-                                        <a href="{{ route('imprest.multi-approval-settings.index') }}" class="btn btn-dark">
-                                            <i class="bx bx-cog me-1"></i> Manage Settings
-                                        </a>
-                                    </div>
-                                    @else
-                                    <div class="card-body text-center text-muted">
-                                        <div class="mb-3">
-                                            <i class="bx bx-lock fs-1"></i>
-                                        </div>
-                                        <p class="card-text">Access denied</p>
-                                    </div>
-                                    @endcan
+                                                    <div class="card-body text-center">
+                                                        <!-- Settings Icon -->
+                                                        <div class="mb-3">
+                                                            <i class="bx bx-cog fs-1 text-dark"></i>
+                                                        </div>
+                                                        <h5 class="card-title">Imprest Approval Settings</h5>
+                                                        <p class="card-text">Configure multi-level approval workflows and user permissions.</p>
+                                                        <a href="{{ route('imprest.multi-approval-settings.index') }}" class="btn btn-dark">
+                                                            <i class="bx bx-cog me-1"></i> Manage Settings
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             </div>
+                                            @endcan
 
                                             <!-- Retirement Approval Settings -->
+                                            @can('manage retirement approval settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
-                                                    @can('manage retirement approval settings')
                                                     <div class="card-body text-center">
                                                         <!-- Settings Icon -->
                                                         <div class="mb-3">
@@ -314,16 +301,9 @@
                                                             <i class="bx bx-cog me-1"></i> Manage Settings
                                                         </a>
                                                     </div>
-                                                    @else
-                                                    <div class="card-body text-center text-muted">
-                                                        <div class="mb-3">
-                                                            <i class="bx bx-lock fs-1"></i>
-                                                        </div>
-                                                        <p class="card-text">Access denied</p>
-                                                    </div>
-                                                    @endcan
                                                 </div>
                                             </div>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>
