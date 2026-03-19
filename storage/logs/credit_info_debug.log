@@ -1,7 +1,0 @@
-2026-03-18 14:46:35 - getCustomerCreditInfo called
-Customer ID: 1
-All params: {"customer_id":"1"}
-Method: GET
-URL: http://127.0.0.1:8000/sales/invoices/customer-credit-info?customer_id=1
-User ID: 1
-
