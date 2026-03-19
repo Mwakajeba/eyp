@@ -231,7 +231,7 @@ class MenuSeeder extends Seeder
             //         'loans.export.excel',
             //     ],
             // ],
-         'Project Management' => [
+         'Projects' => [
                 'icon' => 'bx bx-briefcase',
                 'visibleRoutes' => [
                     ['name' => 'Project Management', 'route' => 'projects.index'],

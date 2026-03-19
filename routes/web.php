@@ -3566,12 +3566,22 @@ Route::prefix('asset-management')->name('assets.')->middleware(['auth', 'company
 Route::prefix('projects')->name('projects.')->middleware(['auth', 'company.scope', 'require.branch'])->group(function () {
     Route::get('/', [ProjectController::class, 'index'])->name('index');
 
-    Route::get('/donor-projects', [ProjectController::class, 'donorProjectsIndex'])->name('donor-projects.index');
-    Route::get('/donor-projects/create', [ProjectController::class, 'donorProjectsCreate'])->name('donor-projects.create');
-    Route::post('/donor-projects', [ProjectController::class, 'storeDonorProject'])->name('donor-projects.store');
+    // Project CRUD
+    Route::get('/project', [ProjectController::class, 'projectIndex'])->name('project.index');
+    Route::get('/project/create', [ProjectController::class, 'projectCreate'])->name('project.create');
+    Route::post('/project', [ProjectController::class, 'projectStore'])->name('project.store');
+    Route::get('/project/{project}/edit', [ProjectController::class, 'projectEdit'])->name('project.edit');
+    Route::put('/project/{project}', [ProjectController::class, 'projectUpdate'])->name('project.update');
+    Route::delete('/project/{project}', [ProjectController::class, 'projectDestroy'])->name('project.destroy');
 
     Route::get('/donor-assignments/create', [ProjectController::class, 'donorAssignmentsCreate'])->name('donor-assignments.create');
     Route::post('/donor-assignments', [ProjectController::class, 'assignDonor'])->name('donor-assignments.store');
+
+    // Project receipts and payments reports
+    Route::post('/reports/receipts/export-pdf', [ProjectController::class, 'projectReceiptsExportPdf'])->name('reports.receipts.export-pdf');
+    Route::post('/reports/receipts/export-excel', [ProjectController::class, 'projectReceiptsExportExcel'])->name('reports.receipts.export-excel');
+    Route::post('/reports/payments/export-pdf', [ProjectController::class, 'projectPaymentsExportPdf'])->name('reports.payments.export-pdf');
+    Route::post('/reports/payments/export-excel', [ProjectController::class, 'projectPaymentsExportExcel'])->name('reports.payments.export-excel');
 });
 
 // Investment Management Routes

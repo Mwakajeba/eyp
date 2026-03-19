@@ -141,7 +141,11 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('purchases.orders.create', compact('suppliers', 'items', 'quotations'));
+        $projects = \App\Models\Project::forCompany(Auth::user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
+        return view('purchases.orders.create', compact('suppliers', 'items', 'quotations', 'projects'));
     }
 
     /**
@@ -227,6 +231,7 @@ class OrderController extends Controller
                 'company_id' => Auth::user()->company_id,
                 'created_by' => Auth::id(),
                 'quotation_id' => $request->quotation_id,
+                'project_id' => $request->project_id ?: null,
             ]);
 
             $subtotal = 0;
@@ -306,7 +311,7 @@ class OrderController extends Controller
             abort(404);
         }
 
-        $order = PurchaseOrder::with(['supplier', 'items.item', 'createdBy', 'approvedBy', 'branch', 'quotation'])
+        $order = PurchaseOrder::with(['supplier', 'items.item', 'createdBy', 'approvedBy', 'branch', 'quotation', 'project'])
             ->findOrFail($id);
 
         // Approval context for UI (approve / reject buttons)
@@ -351,7 +356,11 @@ class OrderController extends Controller
 
         $order->load(['items.item', 'supplier']);
 
-        return view('purchases.orders.edit', compact('order', 'suppliers', 'inventoryItems'));
+        $projects = \App\Models\Project::forCompany(Auth::user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
+        return view('purchases.orders.edit', compact('order', 'suppliers', 'inventoryItems', 'projects'));
     }
 
     /**
@@ -432,6 +441,7 @@ class OrderController extends Controller
                 'hide_cost_price' => $request->boolean('hide_cost_price'),
                 'notes' => $request->notes,
                 'terms_conditions' => $request->terms_conditions,
+                'project_id' => $request->project_id ?: null,
                 'updated_by' => Auth::id(),
             ];
 
@@ -771,7 +781,11 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('purchases.grn.create', compact('order', 'prefillItems', 'inventoryItems', 'suppliers'));
+        $projects = \App\Models\Project::forCompany(Auth::user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
+        return view('purchases.grn.create', compact('order', 'prefillItems', 'inventoryItems', 'suppliers', 'projects'));
     }
 
     /** Store GRN */
@@ -817,6 +831,7 @@ class OrderController extends Controller
                 'warehouse_id' => $request->warehouse_id,
                 'company_id' => $order->company_id ?? auth()->user()->company_id,
                 'branch_id' => $order->branch_id ?? (session('branch_id') ?? auth()->user()->branch_id),
+                'project_id' => $request->project_id ?: ($order->project_id ?? null),
             ]);
 
             $totalAmount = 0;
@@ -999,6 +1014,7 @@ class OrderController extends Controller
                 'status' => 'draft',
                 'company_id' => auth()->user()->company_id,
                 'branch_id' => session('branch_id') ?? auth()->user()->branch_id,
+                'project_id' => $request->project_id ?: null,
             ]);
 
             $totalAmount = 0;
@@ -1042,7 +1058,7 @@ class OrderController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $grn->load(['purchaseOrder.supplier', 'receivedByUser', 'items.inventoryItem', 'warehouse', 'branch']);
+        $grn->load(['purchaseOrder.supplier', 'receivedByUser', 'items.inventoryItem', 'warehouse', 'branch', 'project']);
         
         // Check if GRN has already been converted to an invoice
         $grnItemIds = $grn->items->pluck('id')->toArray();
@@ -1059,6 +1075,7 @@ class OrderController extends Controller
         }
 
         $grn->load(['purchaseOrder.supplier', 'receivedByUser', 'items.inventoryItem', 'company', 'branch', 'warehouse']);
+    $grn->loadMissing('project');
 
         $company = $grn->company ?? $grn->branch->company ?? auth()->user()->company ?? null;
         
@@ -1098,7 +1115,11 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get(['id','name','code','cost_price']);
 
-        return view('purchases.grn.edit', compact('grn', 'warehouses', 'inventoryItems'));
+        $projects = \App\Models\Project::forCompany(auth()->user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
+        return view('purchases.grn.edit', compact('grn', 'warehouses', 'inventoryItems', 'projects'));
     }
 
     /** Update a GRN */
@@ -1125,6 +1146,7 @@ class OrderController extends Controller
         if ($alreadyConverted) {
             // If already converted, prevent status changes and only allow notes/warehouse updates
             $updateData = $request->only(['receipt_date', 'notes', 'warehouse_id']);
+            $updateData['project_id'] = $request->project_id ?: null;
             if ($request->has('status') && $request->input('status') !== $grn->status) {
                 return redirect()->back()->with('error', 'Cannot change GRN status. This GRN has already been converted to an invoice.');
             }
@@ -1135,7 +1157,9 @@ class OrderController extends Controller
             if ($newStatus === 'completed' && (($grn->quality_check_status ?? 'pending') !== 'passed')) {
                 return redirect()->back()->with('error', 'You can only mark GRN as COMPLETED after Quality Check is PASSED.');
             }
-        $grn->update($request->only(['receipt_date','notes','warehouse_id','status']));
+        $grn->update(array_merge($request->only(['receipt_date','notes','warehouse_id','status']), [
+            'project_id' => $request->project_id ?: null,
+        ]));
         }
 
         // Persist per-line QC if provided (only if not already converted)
@@ -1482,6 +1506,7 @@ class OrderController extends Controller
 
         $order = PurchaseOrder::with(['supplier', 'items.item', 'createdBy', 'approvedBy', 'branch.company', 'quotation', 'company'])
             ->findOrFail($id);
+            $order->loadMissing('project');
 
         // Only allow printing approved orders
         if ($order->status !== 'approved') {

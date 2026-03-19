@@ -181,7 +181,10 @@ class QuotationController extends Controller
         }
 
         $sourceInvoice = null;
-        return view('purchases.quotations.create', compact('suppliers', 'items', 'requisition', 'requisitionItems', 'sourceInvoice'));
+        $projects = \App\Models\Project::forCompany(Auth::user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+        return view('purchases.quotations.create', compact('suppliers', 'items', 'requisition', 'requisitionItems', 'sourceInvoice', 'projects'));
     }
 
     /**
@@ -304,6 +307,7 @@ class QuotationController extends Controller
                     'total_amount' => $totalAmount,
                     'attachment' => $attachmentPath,
                     'branch_id' => $branchId,
+                    'project_id' => $request->project_id ?: null,
                     'createdby' => Auth::id(),
                 ]);
 
@@ -349,7 +353,7 @@ class QuotationController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $quotation->load(['supplier', 'user', 'branch', 'quotationItems.item'])
+        $quotation->load(['supplier', 'user', 'branch', 'project', 'quotationItems.item'])
                   ->loadCount('orders');
 
         // Fallback defensive count to ensure accuracy in UI
@@ -400,7 +404,11 @@ class QuotationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('purchases.quotations.edit', compact('quotation', 'suppliers', 'items'));
+        $projects = \App\Models\Project::forCompany(Auth::user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
+        return view('purchases.quotations.edit', compact('quotation', 'suppliers', 'items', 'projects'));
     }
 
     /**
@@ -476,6 +484,7 @@ class QuotationController extends Controller
                 'due_date' => $request->due_date,
                 'is_request_for_quotation' => $isRFQ,
                 'total_amount' => $totalAmount,
+                'project_id' => $request->project_id ?: null,
             ];
 
             // Handle attachment upload
@@ -628,6 +637,7 @@ class QuotationController extends Controller
             'branch.company', 
             'quotationItems.item'
         ]);
+            $quotation->loadMissing('project');
 
         $company = $quotation->branch->company ?? auth()->user()->company ?? null;
         

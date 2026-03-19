@@ -53,7 +53,7 @@
 
                     <div class="mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-info"><i class="bx bx-link me-1"></i>Assign Donor</button>
-                        <a href="{{ route('projects.donor-projects.index') }}" class="btn btn-light">Back</a>
+                        <a href="{{ route('projects.project.index') }}" class="btn btn-light">Back</a>
                     </div>
                 </form>
             </div>

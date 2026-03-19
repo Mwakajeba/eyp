@@ -91,6 +91,9 @@
                                 <p><strong>Payment Terms:</strong> {{ ucfirst(str_replace('_', ' ', $order->payment_terms)) }}</p>
                                 <p><strong>Created By:</strong> {{ $order->createdBy->name ?? 'N/A' }}</p>
                                 <p><strong>Branch:</strong> {{ $order->branch->name ?? 'N/A' }}</p>
+                                @if($order->project)
+                                <p><strong>Project:</strong> {{ $order->project->project_code }} - {{ $order->project->name }}</p>
+                                @endif
                             </div>
                         </div>
 

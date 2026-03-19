@@ -21,7 +21,7 @@ class GoodsReceipt extends Model
         'purchase_order_id', 'grn_number', 'receipt_date', 'received_by',
         'total_quantity', 'total_amount', 'notes', 'status',
         'quality_check_status', 'quality_check_by', 'quality_check_date',
-        'warehouse_id', 'company_id', 'branch_id'
+        'warehouse_id', 'company_id', 'branch_id', 'project_id'
     ];
 
     protected $casts = [
@@ -60,6 +60,11 @@ class GoodsReceipt extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Project::class);
     }
 
     public function items(): HasMany

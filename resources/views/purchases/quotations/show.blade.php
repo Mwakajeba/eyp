@@ -189,6 +189,9 @@
                         <p><strong>Created:</strong> {{ $quotation->created_at->format('M j, Y H:i') }}</p>
                         <p><strong>Created By:</strong> {{ $quotation->user->name }}</p>
                         <p><strong>Branch:</strong> {{ $quotation->branch->name }}</p>
+                        @if($quotation->project)
+                        <p><strong>Project:</strong> {{ $quotation->project->project_code }} - {{ $quotation->project->name }}</p>
+                        @endif
                         <p><strong>Items Count:</strong> {{ $quotation->quotationItems->count() }}</p>
                         @if(!$quotation->is_request_for_quotation)
                         <p><strong>Total Value:</strong> TZS {{ number_format($quotation->total_amount, 2) }}</p>

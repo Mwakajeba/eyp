@@ -92,7 +92,7 @@
 
                     <!-- Request for Quotation Checkbox -->
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="is_request_for_quotation" name="is_request_for_quotation">
@@ -101,6 +101,19 @@
                                         <small class="text-muted d-block">Check this if you want suppliers to provide pricing. Only item and quantity will be shown.</small>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="project_id" class="form-label">Project <span class="text-muted">(Optional)</span></label>
+                                <select class="form-select select2-single" id="project_id" name="project_id">
+                                    <option value="">No Project</option>
+                                    @foreach($projects ?? [] as $project)
+                                        <option value="{{ $project->id }}" @selected(old('project_id') == $project->id)>
+                                            {{ $project->project_code }} - {{ $project->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>

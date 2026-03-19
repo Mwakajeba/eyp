@@ -530,6 +530,7 @@ class SalesInvoice extends Model
         $createdCount = 0;
         foreach ($transactions as $transaction) {
             try {
+                $transaction['project_id'] = $this->project_id;
                 GlTransaction::create($transaction);
                 $createdCount++;
             } catch (\Exception $e) {
@@ -621,6 +622,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -679,6 +681,7 @@ class SalesInvoice extends Model
         // Create all transactions
         foreach ($transactions as $transaction) {
             try {
+                $transaction['project_id'] = $this->project_id;
                 GlTransaction::create($transaction);
             } catch (\Exception $e) {
                 \Log::error('Failed to create late payment fees GL transaction', [
@@ -1195,6 +1198,7 @@ class SalesInvoice extends Model
 
             // Create GL transactions
             foreach ($transactions as $transaction) {
+                $transaction['project_id'] = $this->project_id;
                 \App\Models\GlTransaction::create($transaction);
             }
         }
@@ -1577,6 +1581,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -1640,6 +1645,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -1742,6 +1748,7 @@ class SalesInvoice extends Model
 
         // Create all GL transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             \App\Models\GlTransaction::create($transaction);
         }
     }
@@ -1902,6 +1909,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }

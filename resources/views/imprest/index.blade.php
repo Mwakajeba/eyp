@@ -41,6 +41,7 @@
 
                         <div class="row">
                             <!-- All Imprest Requests -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-primary position-relative">
                                     <div class="card-body text-center">
@@ -60,6 +61,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             {{-- <!-- Manager Review -->
                             <div class="col-md-6 col-lg-4 mb-4">
@@ -126,6 +128,7 @@
                             <!-- Approval Settings -->
 
                             <!-- Pending Approvals -->
+                            @can('approve imprest')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-warning position-relative">
                                     <div class="card-body text-center">
@@ -146,8 +149,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Closed Imprests -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-secondary position-relative">
                                     <div class="card-body text-center">
@@ -167,8 +172,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Pending Retirement Approvals -->
+                            @can('approve retirement')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-orange position-relative">
                                     <div class="card-body text-center">
@@ -189,8 +196,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                              <!-- Liquidation & Retirement -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-danger position-relative">
                                     <div class="card-body text-center">
@@ -210,7 +219,9 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
+                            @can('view imprest reports')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-purple position-relative">
                                     <div class="card-body text-center">
@@ -225,6 +236,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                         </div>
 
@@ -241,6 +253,7 @@
                                         <div class="row text-center">
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
+                                                    @can('manage imprest settings')
                                                     <div class="card-body text-center">
                                                         <div class="mb-3">
                                                             <i class="bx bx-cog fs-1 text-info"></i>
@@ -251,28 +264,45 @@
                                                             <i class="bx bx-cog me-1"></i> Open Settings
                                                         </button>
                                                     </div>
+                                                    @else
+                                                    <div class="card-body text-center text-muted">
+                                                        <div class="mb-3">
+                                                            <i class="bx bx-lock fs-1"></i>
+                                                        </div>
+                                                        <p class="card-text">Access denied</p>
+                                                    </div>
+                                                    @endcan
                                                 </div>
                                             </div>
                                             <!-- Approval Settings -->
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-dark position-relative">
-                                                    <div class="card-body text-center">
-                                                        <!-- Settings Icon -->
-                                                        <div class="mb-3">
-                                                            <i class="bx bx-cog fs-1 text-dark"></i>
-                                                        </div>
-                                                        <h5 class="card-title">Imprest Approval Settings</h5>
-                                                        <p class="card-text">Configure multi-level approval workflows and user permissions.</p>
-                                                        <a href="{{ route('imprest.multi-approval-settings.index') }}" class="btn btn-dark">
-                                                            <i class="bx bx-cog me-1"></i> Manage Settings
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                    @can('manage imprest approval settings')
+                                    <div class="card-body text-center">
+                                        <!-- Settings Icon -->
+                                        <div class="mb-3">
+                                            <i class="bx bx-cog fs-1 text-dark"></i>
+                                        </div>
+                                        <h5 class="card-title">Imprest Approval Settings</h5>
+                                        <p class="card-text">Configure multi-level approval workflows and user permissions.</p>
+                                        <a href="{{ route('imprest.multi-approval-settings.index') }}" class="btn btn-dark">
+                                            <i class="bx bx-cog me-1"></i> Manage Settings
+                                        </a>
+                                    </div>
+                                    @else
+                                    <div class="card-body text-center text-muted">
+                                        <div class="mb-3">
+                                            <i class="bx bx-lock fs-1"></i>
+                                        </div>
+                                        <p class="card-text">Access denied</p>
+                                    </div>
+                                    @endcan
                                             </div>
 
                                             <!-- Retirement Approval Settings -->
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
+                                                    @can('manage retirement approval settings')
                                                     <div class="card-body text-center">
                                                         <!-- Settings Icon -->
                                                         <div class="mb-3">
@@ -284,6 +314,14 @@
                                                             <i class="bx bx-cog me-1"></i> Manage Settings
                                                         </a>
                                                     </div>
+                                                    @else
+                                                    <div class="card-body text-center text-muted">
+                                                        <div class="mb-3">
+                                                            <i class="bx bx-lock fs-1"></i>
+                                                        </div>
+                                                        <p class="card-text">Access denied</p>
+                                                    </div>
+                                                    @endcan
                                                 </div>
                                             </div>
                                         </div>

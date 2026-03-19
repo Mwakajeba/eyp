@@ -172,6 +172,10 @@ class PurchaseRequisitionController extends Controller
             $taxGroups = collect([]);
         }
 
+        $projects = \App\Models\Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'project_code', 'name']);
+
         return view('purchases.requisitions.create', compact(
             'items', 
             'assets', 
@@ -180,7 +184,8 @@ class PurchaseRequisitionController extends Controller
             'budgets',
             'defaultBudget',
             'chartAccounts',
-            'taxGroups'
+            'taxGroups',
+            'projects'
         ));
     }
 
@@ -269,7 +274,8 @@ class PurchaseRequisitionController extends Controller
             'budget',
             'purchaseOrder',
             'branch',
-            'company'
+            'company',
+            'project'
         ];
         
         // Only eager load taxGroup if the model exists
