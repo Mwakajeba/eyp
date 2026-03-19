@@ -368,6 +368,7 @@ $(document).ready(function() {
             data: {
                 chart_account_id: chartAccountId,
                 amount: amount,
+                project_id: $('#project_id').val(),
                 _token: '{{ csrf_token() }}'
             },
             success: function(response) {

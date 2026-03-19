@@ -252,22 +252,50 @@ class ImprestController extends Controller
                 'user_id' => $user->id
             ]);
 
-            // Get current year's budget for validation (only need to check once)
-            $currentYear = date('Y');
+            // Resolve budget by requested imprest date within budget period.
+            $budgetDate = Carbon::parse($request->date_required)->toDateString();
             $budget = Budget::where('company_id', $user->company_id)
-                ->where('branch_id', $branchId)
-                ->where('year', $currentYear)
+                ->where(function ($query) use ($branchId) {
+                    $query->where('branch_id', $branchId)
+                        ->orWhereNull('branch_id');
+                })
+                ->when($request->filled('project_id'), function ($query) use ($request) {
+                    $query->where('project_id', $request->project_id);
+                })
+                ->whereDate('start_date', '<=', $budgetDate)
+                ->whereDate('end_date', '>=', $budgetDate)
+                // Prefer branch-specific budget over company-wide when both exist.
+                ->orderByRaw('CASE WHEN branch_id = ? THEN 0 ELSE 1 END', [$branchId])
+                ->orderByDesc('start_date')
                 ->first();
 
             \Log::info('Budget lookup result', [
                 'budget_found' => $budget ? true : false,
                 'budget_id' => $budget ? $budget->id : null,
-                'year' => $currentYear
+                'budget_date' => $budgetDate,
+                'branch_id' => $branchId,
+                'project_id' => $request->project_id
             ]);
 
             if (!$budget) {
                 \Log::warning('No budget found for validation');
-                return back()->withInput()->withErrors(['error' => 'Budget validation is enabled but no budget found for the current year (' . $currentYear . '). Please create a budget first or contact admin to disable budget checking in imprest settings.']);
+                $baseBudgetQuery = Budget::where('company_id', $user->company_id)
+                    ->where(function ($query) use ($branchId) {
+                        $query->where('branch_id', $branchId)
+                            ->orWhereNull('branch_id');
+                    })
+                    ->whereDate('start_date', '<=', $budgetDate)
+                    ->whereDate('end_date', '>=', $budgetDate);
+
+                $hasBudgetForDate = (clone $baseBudgetQuery)->exists();
+
+                $errorMessage = 'Budget validation is enabled but no active budget was found for the selected date (' . $budgetDate . '). Please create a budget covering this period or contact admin to disable budget checking in imprest settings.';
+
+                if ($request->filled('project_id') && $hasBudgetForDate) {
+                    $errorMessage = 'Budget validation is enabled but no active budget was found for the selected project and date (' . $budgetDate . '). Please create a project budget covering this period or remove the project selection.';
+                }
+
+                return back()->withInput()->withErrors(['error' => $errorMessage]);
             }
 
             foreach ($request->items as $itemIndex => $item) {
@@ -305,7 +333,8 @@ class ImprestController extends Controller
                 // Calculate used amount from GL transactions (debit transactions only)
                 $usedAmount = GlTransaction::where('chart_account_id', $chartAccountId)
                     ->where('branch_id', $branchId)
-                    ->whereYear('date', $currentYear)
+                    ->whereDate('date', '>=', $budget->start_date->toDateString())
+                    ->whereDate('date', '<=', $budget->end_date->toDateString())
                     ->where('nature', 'debit')
                     ->sum('amount');
 
@@ -861,6 +890,153 @@ class ImprestController extends Controller
             'completedApprovals',
             'requiredApprovalLevels'
         ));
+    }
+
+    /**
+     * Validate budget for a single imprest line item (AJAX).
+     */
+    public function validateBudget(Request $request)
+    {
+        $request->validate([
+            'chart_account_id' => 'required|exists:chart_accounts,id',
+            'amount' => 'required|numeric|min:0.01',
+            'date_required' => 'nullable|date',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
+        ]);
+
+        $user = Auth::user();
+        $branchId = session('branch_id') ?? $user->branch_id;
+
+        if (!$branchId) {
+            $branchId = Branch::where('company_id', $user->company_id)->value('id');
+        }
+
+        if (!$branchId) {
+            return response()->json([
+                'error' => 'No branch is configured for your company. Please contact your administrator.',
+                'budget_check_enabled' => false,
+            ], 422);
+        }
+
+        $imprestSettings = ImprestSettings::where('company_id', $user->company_id)
+            ->where('branch_id', $branchId)
+            ->first();
+
+        if (!$imprestSettings || !$imprestSettings->check_budget) {
+            return response()->json([
+                'success' => true,
+                'budget_check_enabled' => false,
+            ]);
+        }
+
+        $budgetDate = $request->filled('date_required')
+            ? Carbon::parse($request->date_required)->toDateString()
+            : now()->toDateString();
+
+        $budget = Budget::where('company_id', $user->company_id)
+            ->where(function ($query) use ($branchId) {
+                $query->where('branch_id', $branchId)
+                    ->orWhereNull('branch_id');
+            })
+            ->when($request->filled('project_id'), function ($query) use ($request) {
+                $query->where('project_id', $request->project_id);
+            })
+            ->whereDate('start_date', '<=', $budgetDate)
+            ->whereDate('end_date', '>=', $budgetDate)
+            // Prefer branch-specific budget over company-wide when both exist.
+            ->orderByRaw('CASE WHEN branch_id = ? THEN 0 ELSE 1 END', [$branchId])
+            ->orderByDesc('start_date')
+            ->first();
+
+        if (!$budget) {
+            $baseBudgetQuery = Budget::where('company_id', $user->company_id)
+                ->where(function ($query) use ($branchId) {
+                    $query->where('branch_id', $branchId)
+                        ->orWhereNull('branch_id');
+                })
+                ->whereDate('start_date', '<=', $budgetDate)
+                ->whereDate('end_date', '>=', $budgetDate);
+
+            $hasBudgetForDate = (clone $baseBudgetQuery)->exists();
+
+            $errorMessage = 'No active budget found for the selected date (' . $budgetDate . ').';
+            $errorCode = 'budget_not_found';
+
+            if ($request->filled('project_id') && $hasBudgetForDate) {
+                $errorMessage = 'No active budget found for the selected project and date (' . $budgetDate . ').';
+                $errorCode = 'project_budget_not_found';
+            }
+
+            return response()->json([
+                'error' => $errorMessage,
+                'error_code' => $errorCode,
+                'budget_check_enabled' => true,
+            ], 422);
+        }
+
+        $budgetLine = BudgetLine::where('budget_id', $budget->id)
+            ->where('account_id', $request->chart_account_id)
+            ->first();
+
+        if (!$budgetLine) {
+            $chartAccount = ChartAccount::find($request->chart_account_id);
+
+            return response()->json([
+                'error' => 'No budget allocation found for account: ' . ($chartAccount->account_name ?? 'Unknown Account') . '.',
+                'budget_check_enabled' => true,
+            ], 422);
+        }
+
+        if ($budgetLine->amount <= 0) {
+            $chartAccount = ChartAccount::find($request->chart_account_id);
+
+            return response()->json([
+                'error' => 'Budget allocation for account: ' . ($chartAccount->account_name ?? 'Unknown Account') . ' has zero or negative amount.',
+                'budget_check_enabled' => true,
+            ], 422);
+        }
+
+        $usedAmount = (float) GlTransaction::where('chart_account_id', $request->chart_account_id)
+            ->where('branch_id', $branchId)
+            ->whereDate('date', '>=', $budget->start_date->toDateString())
+            ->whereDate('date', '<=', $budget->end_date->toDateString())
+            ->where('nature', 'debit')
+            ->sum('amount');
+
+        $requestedAmount = (float) $request->amount;
+        $remainingBudget = (float) $budgetLine->amount - $usedAmount;
+
+        if ($requestedAmount > $remainingBudget) {
+            $chartAccount = ChartAccount::find($request->chart_account_id);
+
+            return response()->json([
+                'error' => 'Insufficient budget for account: ' . ($chartAccount->account_name ?? 'Unknown Account') . '.',
+                'budget_check_enabled' => true,
+                'budget_details' => [
+                    'budgeted_amount' => (float) $budgetLine->amount,
+                    'used_amount' => $usedAmount,
+                    'remaining_budget' => $remainingBudget,
+                    'requested_amount' => $requestedAmount,
+                    'excess_amount' => $requestedAmount - $remainingBudget,
+                ],
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'budget_check_enabled' => true,
+            'budget_details' => [
+                'budgeted_amount' => (float) $budgetLine->amount,
+                'used_amount' => $usedAmount,
+                'remaining_budget' => $remainingBudget,
+                'requested_amount' => $requestedAmount,
+                'available_after_request' => $remainingBudget - $requestedAmount,
+                'budget_date' => $budgetDate,
+            ],
+        ]);
     }
 
     /**
