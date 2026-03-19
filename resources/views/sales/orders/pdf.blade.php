@@ -186,25 +186,10 @@ hr {
 
     {{-- Header --}}
     <div class="text-center">
-        @if($order->company && $order->company->logo)
-            @php
-                $logo = $order->company->logo; // e.g. "uploads/company/logo.png"
-                $logoPath = public_path('storage/' . ltrim($logo, '/'));
-                $logoBase64 = null;
-                if (file_exists($logoPath)) {
-                    $imageData = file_get_contents($logoPath);
-                    $imageInfo = getimagesize($logoPath);
-                    if ($imageInfo !== false) {
-                        $mimeType = $imageInfo->mime ?? 'image/png';
-                        $logoBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
-                    }
-                }
-            @endphp
-            @if($logoBase64)
+        @if(!empty($logoBase64))
                 <div class="logo-section">
                     <img src="{{ $logoBase64 }}" alt="{{ $order->company->name . ' logo' }}" class="company-logo">
                 </div>
-            @endif
         @endif
 
         <div class="company-name">{{ $order->company->name }}</div>

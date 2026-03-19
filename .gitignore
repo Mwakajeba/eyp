@@ -2,3 +2,5 @@
 /vendor/
 /node_modules/
 /storage/*.key
+/storage/logs/laravel.log
+/storage/logs/credit_info_debug.log

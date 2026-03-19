@@ -891,6 +891,9 @@ class PurchaseInvoiceController extends Controller
 
     public function exportPdf(string $encodedId)
     {
+        // PDF rendering can be slower on production due to CPU and I/O contention.
+        @set_time_limit(120);
+
         $id = \Vinkla\Hashids\Facades\Hashids::decode($encodedId)[0] ?? null;
         abort_unless($id, 404);
         $purchaseInvoice = PurchaseInvoice::with(['supplier','items.inventoryItem','company','branch','creator'])->findOrFail($id);
@@ -900,7 +903,7 @@ class PurchaseInvoiceController extends Controller
             ->where('reference_number', $purchaseInvoice->invoice_number)
             ->where('supplier_id', $purchaseInvoice->supplier_id)
             ->orderByDesc('date')
-            ->with(['bankAccount'])
+            ->with(['bankAccount:id,name'])
             ->get();
 
         $totalPaid = (float) ($payments->sum('amount') ?? 0);
@@ -908,11 +911,26 @@ class PurchaseInvoiceController extends Controller
 
         $company = $purchaseInvoice->company ?? $purchaseInvoice->branch->company ?? auth()->user()->company ?? null;
         
-        // Get bank accounts for payment methods
-        $bankAccounts = \App\Models\BankAccount::whereHas('chartAccount.accountClassGroup', function($q) use ($purchaseInvoice) {
-            $companyId = $purchaseInvoice->company_id ?? $purchaseInvoice->branch->company_id ?? auth()->user()->company_id;
-            $q->where('company_id', $companyId);
-        })->orderBy('name')->get();
+        // Get bank accounts for payment methods (limited fields for faster PDF payload).
+        $companyId = $purchaseInvoice->company_id ?? $purchaseInvoice->branch->company_id ?? auth()->user()->company_id;
+        $bankAccounts = BankAccount::query()
+            ->where('company_id', $companyId)
+            ->select(['id', 'name', 'bank_name', 'account_number'])
+            ->orderBy('name')
+            ->get();
+
+        // Prepare logo as base64 once in controller (avoid file I/O in Blade).
+        $logoBase64 = null;
+        if ($company && $company->logo) {
+            $logoPath = public_path('storage/' . ltrim($company->logo, '/'));
+            if (file_exists($logoPath)) {
+                $imageData = @file_get_contents($logoPath);
+                $imageInfo = @getimagesize($logoPath);
+                if ($imageData !== false && $imageInfo !== false && isset($imageInfo['mime'])) {
+                    $logoBase64 = 'data:' . $imageInfo['mime'] . ';base64,' . base64_encode($imageData);
+                }
+            }
+        }
 
         $html = view('purchases.purchase-invoices.pdf', [
             'invoice' => $purchaseInvoice,
@@ -921,6 +939,7 @@ class PurchaseInvoiceController extends Controller
             'balanceDue' => $balanceDue,
             'company' => $company,
             'bankAccounts' => $bankAccounts,
+            'logoBase64' => $logoBase64,
         ])->render();
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('A4');
         

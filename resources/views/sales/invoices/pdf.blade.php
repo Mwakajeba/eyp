@@ -265,28 +265,10 @@
 
         {{-- Header --}}
         <div class="text-left">
-            @if($invoice->company && $invoice->company->logo)
-            @php
-            // Logo is stored in storage/app/public (via "public" disk)
-            $logo = $invoice->company->logo; // e.g. "uploads/companies/company_1_1768466462.png"
-            $logoPath = public_path('storage/' . ltrim($logo, '/'));
-
-            // Convert image to base64 for DomPDF compatibility
-            $logoBase64 = null;
-            if (file_exists($logoPath)) {
-            $imageData = file_get_contents($logoPath);
-            $imageInfo = getimagesize($logoPath);
-            if ($imageInfo !== false) {
-            $mimeType = $imageInfo['mime'];
-            $logoBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
-            }
-            }
-            @endphp
-            @if($logoBase64)
+            @if(!empty($logoBase64))
             <div class="logo-section" style="float: left; width: 45%;">
                 <img src="{{ $logoBase64 }}" alt="{{ $invoice->company->name . ' logo' }}" class="company-logo">
             </div>
-            @endif
             @endif
             <div style="float: right; width: 50%; text-align: left; margin-left: 15%;">
                 <div class="company-name">{{ $invoice->company->name }}</div>
@@ -475,13 +457,6 @@
         @endif
 
         {{-- Outstanding --}}
-        @php
-        $oldInvoicesBalance = \App\Models\Sales\SalesInvoice::where('customer_id', $invoice->customer_id)
-        ->where('id', '!=', $invoice->id)
-        ->selectRaw('SUM(total_amount - paid_amount) as old_balance')
-        ->value('old_balance') ?? 0;
-        $totalBalance = $invoice->balance_due + $oldInvoicesBalance;
-        @endphp
         <div style="margin-top:10px;">
             Outstanding Today: {{ number_format($invoice->balance_due,2) }} <br>
             Old: {{ number_format($oldInvoicesBalance,2) }} <br>
