@@ -9,6 +9,7 @@ use App\Models\ChartAccount;
 use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use App\Models\GlTransaction;
+use App\Models\Project;
 use App\Models\SystemSetting;
 use App\Traits\TransactionHelper;
 use App\Traits\GetsCurrenciesFromFxRates;
@@ -20,6 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 
 class ReceiptVoucherController extends Controller
@@ -175,10 +177,14 @@ class ReceiptVoucherController extends Controller
             ->orderBy('account_name')
             ->get();
 
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
 
-        return view('accounting.receipt-vouchers.create', compact('bankAccounts', 'customers', 'employees', 'chartAccounts', 'currencies'));
+        return view('accounting.receipt-vouchers.create', compact('bankAccounts', 'customers', 'employees', 'chartAccounts', 'currencies', 'projects'));
     }
 
     /**
@@ -204,6 +210,10 @@ class ReceiptVoucherController extends Controller
             'date' => 'required|date',
             'reference' => 'nullable|string|max:255',
             'bank_account_id' => 'required|exists:bank_accounts,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'currency' => 'nullable|string|size:3',
             'exchange_rate' => [
                 'nullable',
@@ -401,6 +411,7 @@ class ReceiptVoucherController extends Controller
                     'attachment' => $attachmentPath,
                     'user_id' => $user->id,
                     'bank_account_id' => $request->bank_account_id,
+                    'project_id' => $request->project_id,
                     'payment_method' => $request->payment_method ?? 'bank_transfer',
                     'cheque_id' => $request->cheque_id ?? null,
                     'payee_type' => $payeeType,
@@ -526,6 +537,7 @@ class ReceiptVoucherController extends Controller
                                 'attachment' => $attachmentPath,
                                 'user_id' => $user->id,
                                 'bank_account_id' => $request->bank_account_id,
+                                'project_id' => $request->project_id,
                                 'payment_method' => $request->payment_method ?? 'bank_transfer',
                                 'cheque_id' => $request->cheque_id ?? null,
                                 'payee_type' => 'customer',
@@ -775,12 +787,16 @@ class ReceiptVoucherController extends Controller
             ->orderBy('account_name')
             ->get();
 
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
         $receiptVoucher->load('receiptItems');
 
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
 
-        return view('accounting.receipt-vouchers.edit', compact('receiptVoucher', 'bankAccounts', 'customers', 'employees', 'chartAccounts', 'currencies'));
+        return view('accounting.receipt-vouchers.edit', compact('receiptVoucher', 'bankAccounts', 'customers', 'employees', 'chartAccounts', 'currencies', 'projects'));
     }
 
     /**
@@ -804,6 +820,10 @@ class ReceiptVoucherController extends Controller
             'payment_method' => 'nullable|in:bank_transfer,cash,cheque',
             'cheque_id' => 'nullable|exists:cheques,id',
             'bank_account_id' => 'required_if:payment_method,bank_transfer|required_if:payment_method,cheque|nullable|exists:bank_accounts,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'currency' => 'nullable|string|size:3',
             'exchange_rate' => [
                 'nullable',
@@ -980,6 +1000,7 @@ class ReceiptVoucherController extends Controller
                     'description' => $request->description,
                     'attachment' => $attachmentPath,
                     'bank_account_id' => $request->bank_account_id,
+                    'project_id' => $request->project_id,
                     'payee_type' => $payeeType,
                     'payee_id' => $payeeId,
                     'payee_name' => $payeeName,
@@ -1119,6 +1140,7 @@ class ReceiptVoucherController extends Controller
                                 'attachment' => $attachmentPath,
                                 'user_id' => $user->id,
                                 'bank_account_id' => $request->bank_account_id,
+                                'project_id' => $request->project_id,
                                 'payment_method' => $request->payment_method ?? 'bank_transfer',
                                 'cheque_id' => $request->cheque_id ?? null,
                                 'payee_type' => 'customer',

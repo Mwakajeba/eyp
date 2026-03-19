@@ -21,6 +21,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\GlTransaction;
 use App\Models\SystemSetting;
 use App\Models\ChartAccount;
+use App\Models\Project;
 use App\Helpers\HashIdHelper;
 use App\Services\FxTransactionRateService;
 use App\Traits\GetsCurrenciesFromFxRates;
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 
 class PurchaseInvoiceController extends Controller
@@ -263,8 +265,12 @@ class PurchaseInvoiceController extends Controller
         
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
+
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
         
-        return view('purchases.purchase-invoices.create', compact('suppliers','items','assets','assetCategories','prefill','suggestedInvoiceNumber','currencies'));
+        return view('purchases.purchase-invoices.create', compact('suppliers','items','assets','assetCategories','prefill','suggestedInvoiceNumber','currencies','projects'));
     }
 
     public function store(Request $request)
@@ -278,6 +284,10 @@ class PurchaseInvoiceController extends Controller
 
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'invoice_number' => 'required|string|max:100|unique:purchase_invoices,invoice_number',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:invoice_date',
@@ -355,6 +365,7 @@ class PurchaseInvoiceController extends Controller
 
             $invoice = PurchaseInvoice::create([
                 'supplier_id' => $request->supplier_id,
+                'project_id' => $request->project_id,
                 'invoice_number' => $request->invoice_number,
                 'invoice_date' => $request->invoice_date,
                 'due_date' => $dueDate,
@@ -957,6 +968,7 @@ class PurchaseInvoiceController extends Controller
             'items' => $items,
             'currencies' => $currencies,
             'assets' => $assets,
+            'projects' => Project::forCompany($user->company_id)->orderBy('name')->get(['id', 'name', 'project_code']),
         ]);
     }
 
@@ -986,6 +998,10 @@ class PurchaseInvoiceController extends Controller
         }
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'invoice_number' => 'required|string|max:100|unique:purchase_invoices,invoice_number,' . $purchaseInvoice->id,
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:invoice_date',
@@ -1060,6 +1076,7 @@ class PurchaseInvoiceController extends Controller
 
             $purchaseInvoice->update([
                 'supplier_id' => $request->supplier_id,
+                'project_id' => $request->project_id,
                 'invoice_number' => $request->invoice_number,
                 'invoice_date' => $request->invoice_date,
                 'due_date' => $request->due_date,

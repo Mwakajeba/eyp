@@ -430,6 +430,12 @@
                         <td colspan="3">{{ $grn->warehouse->name ?? 'N/A' }}</td>
                     </tr>
                     @endif
+                        @if($grn->project)
+                        <tr>
+                            <td><strong>Project:</strong></td>
+                            <td colspan="3">{{ $grn->project->project_code }} - {{ $grn->project->name }}</td>
+                        </tr>
+                        @endif
                     <tr>
                         <td><strong>Time:</strong></td>
                         <td colspan="3">{{ $grn->created_at->format('H:i:s') }}</td>

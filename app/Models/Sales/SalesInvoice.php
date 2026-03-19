@@ -16,6 +16,7 @@ use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use App\Models\SystemSetting;
 use App\Models\Payment;
+use App\Models\Project;
 use App\Helpers\AmountInWords;
 use App\Models\Sales\CreditNote;
 use App\Models\Sales\Delivery;
@@ -36,6 +37,7 @@ class SalesInvoice extends Model
         'sales_order_id',
         'delivery_id',
         'customer_id',
+        'project_id',
         'invoice_date',
         'due_date',
         'status',
@@ -143,6 +145,11 @@ class SalesInvoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function items(): HasMany
@@ -523,6 +530,7 @@ class SalesInvoice extends Model
         $createdCount = 0;
         foreach ($transactions as $transaction) {
             try {
+                $transaction['project_id'] = $this->project_id;
                 GlTransaction::create($transaction);
                 $createdCount++;
             } catch (\Exception $e) {
@@ -614,6 +622,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -672,6 +681,7 @@ class SalesInvoice extends Model
         // Create all transactions
         foreach ($transactions as $transaction) {
             try {
+                $transaction['project_id'] = $this->project_id;
                 GlTransaction::create($transaction);
             } catch (\Exception $e) {
                 \Log::error('Failed to create late payment fees GL transaction', [
@@ -1188,6 +1198,7 @@ class SalesInvoice extends Model
 
             // Create GL transactions
             foreach ($transactions as $transaction) {
+                $transaction['project_id'] = $this->project_id;
                 \App\Models\GlTransaction::create($transaction);
             }
         }
@@ -1570,6 +1581,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -1633,6 +1645,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }
@@ -1735,6 +1748,7 @@ class SalesInvoice extends Model
 
         // Create all GL transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             \App\Models\GlTransaction::create($transaction);
         }
     }
@@ -1895,6 +1909,7 @@ class SalesInvoice extends Model
 
         // Create all transactions
         foreach ($transactions as $transaction) {
+            $transaction['project_id'] = $this->project_id;
             GlTransaction::create($transaction);
         }
     }

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\GlTransaction;
 use App\Models\SystemSetting;
 use App\Models\Payment;
+use App\Models\Project;
 use App\Helpers\AmountInWords;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +24,7 @@ class PurchaseInvoice extends Model
 
     protected $fillable = [
         'supplier_id',
+        'project_id',
         'invoice_number',
         'invoice_date',
         'due_date',
@@ -57,6 +59,7 @@ class PurchaseInvoice extends Model
     }
 
     public function supplier(): BelongsTo { return $this->belongsTo(Supplier::class); }
+    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
     public function company(): BelongsTo { return $this->belongsTo(Company::class); }
     public function branch(): BelongsTo { return $this->belongsTo(Branch::class); }
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
@@ -243,6 +246,7 @@ class PurchaseInvoice extends Model
             GlTransaction::create([
                 'chart_account_id' => (int) $accountId,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $amount, // Already converted to LCY
                 'nature' => 'debit',
                 'transaction_id' => $this->id,
@@ -262,6 +266,7 @@ class PurchaseInvoice extends Model
             GlTransaction::create([
                 'chart_account_id' => $vatAccountId,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $totalVat, // Already converted to LCY
                 'nature' => 'debit',
                 'transaction_id' => $this->id,
@@ -280,6 +285,7 @@ class PurchaseInvoice extends Model
             GlTransaction::create([
                 'chart_account_id' => $discountIncomeAccountId,
                 'supplier_id' => $this->supplier_id,
+                'project_id' => $this->project_id,
                 'amount' => $discountAmountLCY,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -299,6 +305,7 @@ class PurchaseInvoice extends Model
         GlTransaction::create([
             'chart_account_id' => $apAccountId,
             'supplier_id' => $this->supplier_id,
+            'project_id' => $this->project_id,
             'amount' => $apAmountLCY,
             'nature' => 'credit',
             'transaction_id' => $this->id,

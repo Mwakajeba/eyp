@@ -12,6 +12,7 @@ use App\Models\Supplier;
 use App\Models\GlTransaction;
 use App\Models\Payment;
 use App\Models\PaymentItem;
+use App\Models\Project;
 use App\Models\SystemSetting;
 use App\Services\FxTransactionRateService;
 use App\Traits\GetsCurrenciesFromFxRates;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use App\Helpers\HashIdHelper;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -503,7 +505,11 @@ class PaymentVoucherController extends Controller
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
 
-        return view('accounting.payment-vouchers.create', compact('bankAccounts', 'customers', 'suppliers', 'employees', 'chartAccounts', 'currencies'));
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
+        return view('accounting.payment-vouchers.create', compact('bankAccounts', 'customers', 'suppliers', 'employees', 'chartAccounts', 'currencies', 'projects'));
     }
 
     /**
@@ -514,6 +520,10 @@ class PaymentVoucherController extends Controller
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
             'reference' => 'nullable|string|max:255',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'payment_method' => 'nullable|in:bank_transfer,cash_deposit,cheque',
             'bank_account_id' => 'required_if:payment_method,bank_transfer|required_if:payment_method,cheque|nullable|exists:bank_accounts,id',
             'cash_deposit_id' => 'required_if:payment_method,cash_deposit|nullable|in:customer_balance',
@@ -766,6 +776,7 @@ class PaymentVoucherController extends Controller
                     'reference' => $request->reference ?: 'PV-' . strtoupper(uniqid()),
                     'reference_type' => 'manual',
                     'reference_number' => $request->reference,
+                    'project_id' => $request->project_id,
                     'amount' => $totalAmount, // Total amount (may include VAT)
                     'currency' => $currency,
                     'exchange_rate' => $exchangeRate,
@@ -922,6 +933,7 @@ class PaymentVoucherController extends Controller
                                 'reference' => $payment->reference . '-INV-' . $invoice->invoice_number,
                                 'reference_type' => 'purchase_invoice',
                                 'reference_number' => $invoice->invoice_number,
+                                'project_id' => $request->project_id,
                                 'amount' => $invoicePaymentAmount,
                                 'currency' => $currency,
                                 'exchange_rate' => $exchangeRate,
@@ -1157,7 +1169,11 @@ class PaymentVoucherController extends Controller
 
         $paymentVoucher->load(['paymentItems', 'cheque']);
 
-        return view('accounting.payment-vouchers.edit', compact('paymentVoucher', 'bankAccounts', 'customers', 'suppliers', 'employees', 'chartAccounts'));
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
+        return view('accounting.payment-vouchers.edit', compact('paymentVoucher', 'bankAccounts', 'customers', 'suppliers', 'employees', 'chartAccounts', 'projects'));
     }
 
     /**
@@ -1177,6 +1193,10 @@ class PaymentVoucherController extends Controller
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
             'reference' => 'nullable|string|max:255',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'payment_method' => 'nullable|in:bank_transfer,cash_deposit,cheque',
             'bank_account_id' => 'required_if:payment_method,bank_transfer|required_if:payment_method,cheque|nullable|exists:bank_accounts,id',
             'cash_deposit_id' => 'required_if:payment_method,cash_deposit|nullable|in:customer_balance',
@@ -1483,6 +1503,7 @@ class PaymentVoucherController extends Controller
                 // Update payment
                 $updateData = [
                     'reference' => $request->reference ?: $paymentVoucher->reference,
+                    'project_id' => $request->project_id,
                     'amount' => $totalAmount, // Total amount (may include VAT)
                     'currency' => $currency,
                     'exchange_rate' => $exchangeRate,
@@ -1649,6 +1670,7 @@ class PaymentVoucherController extends Controller
                                 'reference' => $paymentVoucher->reference . '-INV-' . $invoice->invoice_number,
                                 'reference_type' => 'purchase_invoice',
                                 'reference_number' => $invoice->invoice_number,
+                                'project_id' => $request->project_id,
                                 'amount' => $invoicePaymentAmount,
                                 'currency' => $currency,
                                 'exchange_rate' => $exchangeRate,

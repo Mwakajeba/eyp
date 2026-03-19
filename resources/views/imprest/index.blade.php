@@ -41,6 +41,7 @@
 
                         <div class="row">
                             <!-- All Imprest Requests -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-primary position-relative">
                                     <div class="card-body text-center">
@@ -60,6 +61,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             {{-- <!-- Manager Review -->
                             <div class="col-md-6 col-lg-4 mb-4">
@@ -126,6 +128,7 @@
                             <!-- Approval Settings -->
 
                             <!-- Pending Approvals -->
+                            @can('approve imprest')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-warning position-relative">
                                     <div class="card-body text-center">
@@ -146,8 +149,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Closed Imprests -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-secondary position-relative">
                                     <div class="card-body text-center">
@@ -167,8 +172,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Pending Retirement Approvals -->
+                            @can('approve retirement')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-orange position-relative">
                                     <div class="card-body text-center">
@@ -189,8 +196,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                              <!-- Liquidation & Retirement -->
+                            @can('view imprest requests')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-danger position-relative">
                                     <div class="card-body text-center">
@@ -210,7 +219,9 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
+                            @can('view imprest reports')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-purple position-relative">
                                     <div class="card-body text-center">
@@ -225,6 +236,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                         </div>
 
@@ -239,6 +251,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row text-center">
+                                            @can('manage imprest settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
                                                     <div class="card-body text-center">
@@ -253,7 +266,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            @endcan
                                             <!-- Approval Settings -->
+                                            @can('manage imprest approval settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-dark position-relative">
                                                     <div class="card-body text-center">
@@ -269,8 +284,10 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            @endcan
 
                                             <!-- Retirement Approval Settings -->
+                                            @can('manage retirement approval settings')
                                             <div class="col-md-6 col-lg-4 mb-4">
                                                 <div class="card border-info position-relative">
                                                     <div class="card-body text-center">
@@ -286,6 +303,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>

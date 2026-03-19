@@ -23,8 +23,11 @@ class Budget extends Model
         'name',
         'year',
         'description',
+        'start_date',
+        'end_date',
         'user_id',
         'branch_id',
+        'project_id',
         'company_id',
         'status',
         'current_approval_level',
@@ -44,6 +47,8 @@ class Budget extends Model
      */
     protected $casts = [
         'year' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'current_approval_level' => 'integer',
         'submitted_at' => 'datetime',
         'approved_at' => 'datetime',
@@ -74,6 +79,14 @@ class Budget extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the project linked to this budget.
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     /**

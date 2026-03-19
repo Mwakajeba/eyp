@@ -147,7 +147,19 @@
                                 <textarea class="form-control" id="notes" name="notes" rows="4">{{ $grn->notes }}</textarea>
                             </div>
                         </div>
-                        
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="project_id" class="form-label">Project <span class="text-muted">(Optional)</span></label>
+                                    <select class="form-select select2-single" id="project_id" name="project_id">
+                                        <option value="">No Project</option>
+                                        @foreach($projects ?? [] as $project)
+                                            <option value="{{ $project->id }}" @selected($grn->project_id == $project->id)>
+                                                {{ $project->project_code }} - {{ $project->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                     </div>
 
                     <!-- Action Buttons -->

@@ -441,6 +441,12 @@
                         <td colspan="3">{{ $order->branch->name ?? 'N/A' }}</td>
                     </tr>
                     @endif
+                        @if($order->project)
+                        <tr>
+                            <td><strong>Project:</strong></td>
+                            <td colspan="3">{{ $order->project->project_code }} - {{ $order->project->name }}</td>
+                        </tr>
+                        @endif
                     <tr>
                         <td><strong>Time:</strong></td>
                         <td colspan="3">{{ $order->created_at->format('H:i:s') }}</td>

@@ -11,6 +11,7 @@ use App\Models\Inventory\Item as InventoryItem;
 use App\Models\Inventory\Movement as InventoryMovement;
 use App\Models\SystemSetting;
 use App\Models\Payment;
+use App\Models\Project;
 use App\Services\InventoryCostService;
 use App\Services\FxTransactionRateService;
 use App\Mail\SalesInvoiceMail;
@@ -279,6 +280,10 @@ class SalesInvoiceController extends Controller
             ->orderBy('order_date', 'desc')
             ->get();
 
+        $projects = Project::forCompany(auth()->user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
         // Pre-select customer if provided
         $selectedCustomer = null;
         if ($request->has('customer_id')) {
@@ -329,7 +334,7 @@ class SalesInvoiceController extends Controller
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
 
-        return view('sales.invoices.create', compact('customers', 'inventoryItems', 'salesOrders', 'selectedCustomer', 'currencies', 'copyFromInvoice'))->with('items', $inventoryItems);
+        return view('sales.invoices.create', compact('customers', 'inventoryItems', 'salesOrders', 'selectedCustomer', 'currencies', 'copyFromInvoice', 'projects'))->with('items', $inventoryItems);
     }
 
     /**
@@ -345,6 +350,10 @@ class SalesInvoiceController extends Controller
 
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'project_id' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
+            ],
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
@@ -394,6 +403,26 @@ class SalesInvoiceController extends Controller
             'items.*.discount_rate' => 'nullable|numeric|min:0',
             'items.*.notes' => 'nullable|string',
         ]);
+
+        if ($request->filled('project_id')) {
+            $isAssigned = DB::table('donor_project_assignments')
+                ->where('company_id', auth()->user()->company_id)
+                ->where('project_id', $request->project_id)
+                ->where('customer_id', $request->customer_id)
+                ->exists();
+
+            if (! $isAssigned) {
+                $message = 'Selected customer is not assigned to the chosen project.';
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 422);
+                }
+
+                return redirect()->back()->withInput()->withErrors(['project_id' => $message]);
+            }
+        }
 
         // Resolve branch
         $branchId = session('branch_id') ?? (auth()->user()->branch_id ?? null);
@@ -490,6 +519,7 @@ class SalesInvoiceController extends Controller
 
             $invoice = SalesInvoice::create([
                 'customer_id' => $request->customer_id,
+                'project_id' => $request->project_id,
                 'sales_order_id' => $request->sales_order_id,
                 'invoice_date' => $request->invoice_date,
                 'due_date' => $request->due_date,
@@ -917,10 +947,14 @@ class SalesInvoiceController extends Controller
 
         $salesOrders = SalesOrder::forBranch(auth()->user()->branch_id)->approved()->get();
 
+        $projects = Project::forCompany(auth()->user()->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
         // Get currencies from FX RATES MANAGEMENT
         $currencies = $this->getCurrenciesFromFxRates();
 
-        return view('sales.invoices.edit', compact('invoice', 'customers', 'inventoryItems', 'salesOrders', 'currencies', 'originalQuantities'))->with('items', $inventoryItems);
+        return view('sales.invoices.edit', compact('invoice', 'customers', 'inventoryItems', 'salesOrders', 'currencies', 'originalQuantities', 'projects'))->with('items', $inventoryItems);
     }
 
     /**
@@ -942,6 +976,10 @@ class SalesInvoiceController extends Controller
 
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'project_id' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', auth()->user()->company_id)),
+            ],
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
@@ -987,6 +1025,26 @@ class SalesInvoiceController extends Controller
             'items.*.discount_rate' => 'nullable|numeric|min:0',
             'items.*.notes' => 'nullable|string',
         ]);
+
+        if ($request->filled('project_id')) {
+            $isAssigned = DB::table('donor_project_assignments')
+                ->where('company_id', auth()->user()->company_id)
+                ->where('project_id', $request->project_id)
+                ->where('customer_id', $request->customer_id)
+                ->exists();
+
+            if (! $isAssigned) {
+                $message = 'Selected customer is not assigned to the chosen project.';
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 422);
+                }
+
+                return redirect()->back()->withInput()->withErrors(['project_id' => $message]);
+            }
+        }
 
         // Custom validation for stock availability
         $validator = \Validator::make($request->all(), []);
@@ -1067,6 +1125,7 @@ class SalesInvoiceController extends Controller
             // Update invoice
             $invoice->update([
                 'customer_id' => $request->customer_id,
+                'project_id' => $request->project_id,
                 'sales_order_id' => $request->sales_order_id,
                 'invoice_date' => $request->invoice_date,
                 'due_date' => $request->due_date,

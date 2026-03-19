@@ -248,6 +248,17 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
+                                <label for="project_id" class="form-label">Project <span class="text-muted">(Optional)</span></label>
+                                <select class="form-select select2-single" id="project_id" name="project_id">
+                                    <option value="">No Project</option>
+                                    @foreach($projects ?? [] as $project)
+                                        <option value="{{ $project->id }}">
+                                            {{ $project->project_code }} - {{ $project->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="attachment" class="form-label">Attachment (optional)</label>
                                 <input type="file" class="form-control @error('attachment') is-invalid @enderror"
                                        id="attachment" name="attachment"

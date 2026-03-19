@@ -48,6 +48,17 @@
                             <small class="text-muted">Required for budget validation</small>
                         </div>
                         <div class="col-md-3">
+                            <label class="form-label">Project <span class="text-muted">(Optional)</span></label>
+                            <select name="project_id" id="project_id" class="form-select select2-single">
+                                <option value="">No Project</option>
+                                @foreach($projects ?? [] as $project)
+                                    <option value="{{ $project->id }}" @selected(old('project_id') == $project->id)>
+                                        {{ $project->project_code }} - {{ $project->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Required Date <span class="text-danger">*</span></label>
                             <input type="date"
                                    name="required_date"

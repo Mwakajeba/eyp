@@ -49,6 +49,11 @@
                                             <i class="bx bx-wallet me-1"></i>{{ $requisition->budget->name ?? 'Budget ' . $requisition->budget->year }}
                                         </span>
                                     @endif
+                                    @if($requisition->project)
+                                        <span class="badge bg-secondary">
+                                            <i class="bx bx-folder me-1"></i>{{ $requisition->project->project_code }} - {{ $requisition->project->name }}
+                                        </span>
+                                    @endif
                                     @if($requisition->purchaseOrder)
                                         <a href="{{ route('purchases.orders.show', $requisition->purchaseOrder->encoded_id) }}" class="badge bg-info text-white text-decoration-none">
                                             <i class="bx bx-shopping-bag me-1"></i>PO: {{ $requisition->purchaseOrder->order_number ?? $requisition->purchaseOrder->po_no ?? 'N/A' }}

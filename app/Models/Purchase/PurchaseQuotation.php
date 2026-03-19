@@ -33,6 +33,7 @@ class PurchaseQuotation extends Model
         'total_amount',
         'attachment',
         'branch_id',
+        'project_id',
         'createdby',
     ];
 
@@ -48,6 +49,11 @@ class PurchaseQuotation extends Model
     public function requisition(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Purchase\PurchaseRequisition::class, 'purchase_requisition_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Project::class);
     }
 
     public function supplier(): BelongsTo

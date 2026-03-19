@@ -36,6 +36,7 @@ class Receipt extends Model
         'user_id',
         'attachment',
         'bank_account_id',
+        'project_id',
         'payee_type',
         'payee_id',
         'payee_name',
@@ -82,6 +83,11 @@ class Receipt extends Model
     public function bankAccount()
     {
         return $this->belongsTo(BankAccount::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function customer()
@@ -425,6 +431,7 @@ class Receipt extends Model
         GlTransaction::create([
             'chart_account_id' => $debitAccountId,
             'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+            'project_id' => $this->project_id,
             'amount' => $debitAmount,
             'nature' => 'debit',
             'transaction_id' => $this->id,
@@ -440,6 +447,7 @@ class Receipt extends Model
             GlTransaction::create([
                 'chart_account_id' => $whtReceivableAccountId,
                 'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+                'project_id' => $this->project_id,
                 'amount' => $totalWHT,
                 'nature' => 'debit',
                 'transaction_id' => $this->id,
@@ -456,6 +464,7 @@ class Receipt extends Model
             GlTransaction::create([
                 'chart_account_id' => $vatOutputAccountId,
                 'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+                'project_id' => $this->project_id,
                 'amount' => $totalVAT,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -472,6 +481,7 @@ class Receipt extends Model
             GlTransaction::create([
                 'chart_account_id' => $item->chart_account_id,
                 'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+                'project_id' => $this->project_id,
                 'amount' => $item->base_amount ?? $item->amount, // Base amount (excluding VAT)
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -575,6 +585,7 @@ class Receipt extends Model
             GlTransaction::create([
                 'chart_account_id' => $chequesInTransitAccountId,
                 'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+                'project_id' => $this->project_id,
                 'amount' => $debitAmount,
                 'nature' => 'credit',
                 'transaction_id' => $this->id,
@@ -589,6 +600,7 @@ class Receipt extends Model
             GlTransaction::create([
                 'chart_account_id' => $bankAccount->chart_account_id,
                 'customer_id' => $this->payee_type === 'customer' ? $this->payee_id : null,
+                'project_id' => $this->project_id,
                 'amount' => $debitAmount,
                 'nature' => 'debit',
                 'transaction_id' => $this->id,

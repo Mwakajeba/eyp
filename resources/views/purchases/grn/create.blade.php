@@ -273,21 +273,36 @@
 
                     <!-- Notes and Terms -->
                     <div class="row mt-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="notes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                <textarea class="form-control" id="notes" name="notes" rows="4"
                                           placeholder="Additional notes for this GRN..."></textarea>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="terms_conditions" class="form-label">Terms & Conditions</label>
-                                <textarea class="form-control" id="terms_conditions" name="terms_conditions" rows="4" 
+                                <textarea class="form-control" id="terms_conditions" name="terms_conditions" rows="4"
                                           placeholder="Terms and conditions..."></textarea>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="project_id" class="form-label">Project <span class="text-muted">(Optional)</span></label>
+                                <select class="form-select select2-single" id="project_id" name="project_id">
+                                    <option value="">No Project</option>
+                                    @foreach($projects ?? [] as $project)
+                                        <option value="{{ $project->id }}"
+                                            @if(isset($order) && $order->project_id == $project->id) selected @endif>
+                                            {{ $project->project_code }} - {{ $project->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
 
                     <!-- Action Buttons -->
                     <div class="d-flex gap-2 justify-content-end">
@@ -409,7 +424,7 @@ $(document).ready(function() {
         theme: 'bootstrap-5'
     });
 
-    // Initialize Select2 for modal with search
+                    <!-- Action Buttons -->
     $('.select2-modal').select2({
         placeholder: 'Search for an item...',
         allowClear: true,

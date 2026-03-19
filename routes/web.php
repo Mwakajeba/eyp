@@ -862,6 +862,14 @@ Route::prefix('super-admin')->name('super-admin.')->middleware(['auth', 'role:su
 Route::prefix('accounting')->name('accounting.')->middleware(['auth', 'require.branch'])->group(function () {
     Route::get('/', [App\Http\Controllers\AccountingController::class, 'index'])->name('index');
 
+    // Accounting Documents
+    Route::get('/documents', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'index'])->name('documents.index');
+    Route::post('/documents', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}/view', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'view'])->name('documents.view');
+    Route::get('/documents/{document}/edit', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'edit'])->name('documents.edit');
+    Route::put('/documents/{document}', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'update'])->name('documents.update');
+    Route::delete('/documents/{document}', [App\Http\Controllers\Accounting\AccountingDocumentController::class, 'destroy'])->name('documents.destroy');
+
     // Main Groups
     Route::get('/main-groups', [App\Http\Controllers\MainGroupController::class, 'index'])->name('main-groups.index');
     Route::get('/main-groups/create', [App\Http\Controllers\MainGroupController::class, 'create'])->name('main-groups.create');
@@ -3557,6 +3565,23 @@ Route::prefix('asset-management')->name('assets.')->middleware(['auth', 'company
 // Project Management Routes
 Route::prefix('projects')->name('projects.')->middleware(['auth', 'company.scope', 'require.branch'])->group(function () {
     Route::get('/', [ProjectController::class, 'index'])->name('index');
+
+    // Project CRUD
+    Route::get('/project', [ProjectController::class, 'projectIndex'])->name('project.index');
+    Route::get('/project/create', [ProjectController::class, 'projectCreate'])->name('project.create');
+    Route::post('/project', [ProjectController::class, 'projectStore'])->name('project.store');
+    Route::get('/project/{project}/edit', [ProjectController::class, 'projectEdit'])->name('project.edit');
+    Route::put('/project/{project}', [ProjectController::class, 'projectUpdate'])->name('project.update');
+    Route::delete('/project/{project}', [ProjectController::class, 'projectDestroy'])->name('project.destroy');
+
+    Route::get('/donor-assignments/create', [ProjectController::class, 'donorAssignmentsCreate'])->name('donor-assignments.create');
+    Route::post('/donor-assignments', [ProjectController::class, 'assignDonor'])->name('donor-assignments.store');
+
+    // Project receipts and payments reports
+    Route::post('/reports/receipts/export-pdf', [ProjectController::class, 'projectReceiptsExportPdf'])->name('reports.receipts.export-pdf');
+    Route::post('/reports/receipts/export-excel', [ProjectController::class, 'projectReceiptsExportExcel'])->name('reports.receipts.export-excel');
+    Route::post('/reports/payments/export-pdf', [ProjectController::class, 'projectPaymentsExportPdf'])->name('reports.payments.export-pdf');
+    Route::post('/reports/payments/export-excel', [ProjectController::class, 'projectPaymentsExportExcel'])->name('reports.payments.export-excel');
 });
 
 // Investment Management Routes

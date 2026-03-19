@@ -80,6 +80,22 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
+                            <label for="project_id" class="form-label">Project</label>
+                            <select name="project_id" id="project_id" class="form-select select2-single @error('project_id') is-invalid @enderror">
+                                <option value="">None</option>
+                                @foreach($projects as $project)
+                                <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                    {{ $project->project_code ? $project->project_code . ' - ' : '' }}{{ $project->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @error('project_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">Optional: link this imprest request to a project.</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
                             <label for="amount_requested" class="form-label">Total Amount Requested (TZS) <span class="text-danger">*</span></label>
                             <input type="number" 
                                 class="form-control @error('amount_requested') is-invalid @enderror"

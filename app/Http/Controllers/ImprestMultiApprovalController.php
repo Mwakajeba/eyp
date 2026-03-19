@@ -60,15 +60,7 @@ class ImprestMultiApprovalController extends Controller
         ]);
 
         $user = Auth::user();
-        $approval = ImprestApproval::with('imprestRequest')->findOrFail($approvalId);
-
-        //get the employee phone number and name
-
-        $employee = $user->employee;
-        $phoneNumber = $employee->phone_number;
-        $name = $employee->full_name;
-        $message = "Ndugu $name, ombi lako limeidhinishwa katika ngazi hii. Tafadhali subiri hatua inayofuata ya uthibitisho.";
-        SmsHelper::send($phoneNumber, $message);
+        $approval = ImprestApproval::with('imprestRequest.employee')->findOrFail($approvalId);
 
         // Check if user is authorized to approve
         if ($approval->approver_id !== $user->id) {
@@ -121,6 +113,33 @@ class ImprestMultiApprovalController extends Controller
             }
 
             DB::commit();
+
+            // Notify the request owner only after a successful commit.
+            $requestOwner = $imprestRequest->employee;
+            if ($requestOwner && !empty($requestOwner->phone)) {
+                $ownerName = $requestOwner->name ?? 'Mfanyakazi';
+                $smsMessage = "Ndugu {$ownerName}, ombi lako limeidhinishwa katika ngazi hii. Tafadhali subiri hatua inayofuata ya uthibitisho.";
+
+                try {
+                    SmsHelper::send($requestOwner->phone, $smsMessage);
+                } catch (\Exception $smsException) {
+                    // Do not fail approval when SMS delivery fails.
+                    \Log::warning('Failed to send imprest approval SMS', [
+                        'approval_id' => $approval->id,
+                        'request_id' => $imprestRequest->id,
+                        'employee_id' => $requestOwner->id,
+                        'error' => $smsException->getMessage(),
+                    ]);
+                }
+            } else {
+                \Log::info('Skipped imprest approval SMS: missing recipient or phone', [
+                    'approval_id' => $approval->id,
+                    'request_id' => $imprestRequest->id,
+                    'employee_id' => $requestOwner?->id,
+                    'has_request_owner' => (bool) $requestOwner,
+                    'has_phone' => (bool) ($requestOwner?->phone),
+                ]);
+            }
 
             return redirect()->route('imprest.multi-approvals.pending')
                 ->with('success', $message);

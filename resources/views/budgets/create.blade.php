@@ -52,22 +52,50 @@
                                      <div class="form-group">
                                          <label class="form-label fw-bold">
                                              <i class="bx bx-calendar me-1"></i>
-                                             {{ __('app.budget_year') }} <span class="text-danger">*</span>
+                                             Start Date <span class="text-danger">*</span>
                                          </label>
-                                         <select class="form-select @error('year') is-invalid @enderror" name="year" required>
-                                             <option value="">{{ __('app.select') }} {{ __('app.budget_year') }}</option>
-                                             @for($year = date('Y') - 2; $year <= date('Y') + 3; $year++)
-                                                 <option value="{{ $year }}" {{ old('year') == $year ? 'selected' : '' }}>
-                                                     {{ $year }}
-                                                 </option>
-                                             @endfor
-                                         </select>
-                                         @error('year')
+                                         <input type="date" class="form-control @error('start_date') is-invalid @enderror"
+                                                name="start_date" value="{{ old('start_date') }}" required>
+                                         @error('start_date')
                                              <div class="invalid-feedback">{{ $message }}</div>
                                          @enderror
                                      </div>
                                  </div>
                                  <div class="col-md-3">
+                                     <div class="form-group">
+                                         <label class="form-label fw-bold">
+                                             <i class="bx bx-calendar-event me-1"></i>
+                                             End Date <span class="text-danger">*</span>
+                                         </label>
+                                         <input type="date" class="form-control @error('end_date') is-invalid @enderror"
+                                                name="end_date" value="{{ old('end_date') }}" required>
+                                         @error('end_date')
+                                             <div class="invalid-feedback">{{ $message }}</div>
+                                         @enderror
+                                     </div>
+                                 </div>
+                                 <div class="col-12"></div>
+                                 <div class="col-md-6 mt-3">
+                                     <div class="form-group">
+                                         <label class="form-label fw-bold">
+                                             <i class="bx bx-briefcase me-1"></i>
+                                             Project
+                                         </label>
+                                         <select class="form-select @error('project_id') is-invalid @enderror" name="project_id">
+                                             <option value="">All Projects</option>
+                                             @foreach($projects as $project)
+                                                 <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
+                                                     {{ $project->project_code ? $project->project_code . ' - ' : '' }}{{ $project->name }}
+                                                 </option>
+                                             @endforeach
+                                         </select>
+                                         <small class="text-muted">Optional: link this budget to a project.</small>
+                                         @error('project_id')
+                                             <div class="invalid-feedback">{{ $message }}</div>
+                                         @enderror
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6 mt-3">
                                      <div class="form-group">
                                          <label class="form-label fw-bold">
                                              <i class="bx bx-building me-1"></i>

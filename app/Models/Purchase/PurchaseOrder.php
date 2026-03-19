@@ -52,6 +52,7 @@ class PurchaseOrder extends Model
         'rejection_reason',
         'branch_id',
         'company_id',
+        'project_id',
         'created_by',
         'updated_by',
     ];
@@ -158,6 +159,11 @@ class PurchaseOrder extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Project::class);
     }
 
     /**

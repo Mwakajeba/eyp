@@ -37,6 +37,7 @@ class PurchaseRequisition extends Model
         'rejection_reason',
         'purchase_order_id',
         'budget_id',
+        'project_id',
         'total_amount',
         'currency',
         'exchange_rate',
@@ -83,6 +84,11 @@ class PurchaseRequisition extends Model
     }
 
     /** Relationships */
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Project::class);
+    }
 
     public function company(): BelongsTo
     {

@@ -59,7 +59,10 @@
                         @endif
                         <p class="mb-1"><strong>Received By:</strong> {{ $grn->receivedByUser->name ?? 'N/A' }}</p>
                         <p class="mb-1"><strong>Location:</strong> {{ $grn->warehouse->name ?? 'N/A' }}</p>
-                        <p class="mb-0"><strong>Branch:</strong> {{ $grn->branch->name ?? 'N/A' }}</p>
+                        <p class="mb-1"><strong>Branch:</strong> {{ $grn->branch->name ?? 'N/A' }}</p>
+                        @if($grn->project)
+                        <p class="mb-0"><strong>Project:</strong> {{ $grn->project->project_code }} - {{ $grn->project->name }}</p>
+                        @endif
                     </div>
                 </div>
             </div>

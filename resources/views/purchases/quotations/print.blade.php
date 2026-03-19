@@ -427,6 +427,12 @@
                         <td colspan="3">{{ $quotation->branch->name ?? 'N/A' }}</td>
                     </tr>
                     @endif
+                        @if($quotation->project)
+                        <tr>
+                            <td><strong>Project:</strong></td>
+                            <td colspan="3">{{ $quotation->project->project_code }} - {{ $quotation->project->name }}</td>
+                        </tr>
+                        @endif
                     <tr>
                         <td><strong>Time:</strong></td>
                         <td colspan="3">{{ $quotation->created_at->format('H:i:s') }}</td>

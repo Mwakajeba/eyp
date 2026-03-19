@@ -722,6 +722,33 @@ class RolePermissionSeeder extends Seeder
             'edit fleet settings',
             'manage fleet settings',
 
+            // Imprest Management
+            'view imprest requests',
+            'create imprest request',
+            'edit imprest request',
+            'delete imprest request',
+            'approve imprest',
+            'view imprest approvals',
+            'approve imprest approval',
+            'reject imprest approval',
+            'view imprest reports',
+            'manage imprest settings',
+            'manage imprest approval settings',
+            'manage retirement approval settings',
+            'view retirement approvals',
+            'approve retirement',
+            'reject retirement',
+            // Store Requisitions
+            'view store requisitions',
+            'create store requisition',
+            'edit store requisition',
+            'delete store requisition',
+            'approve store requisition',
+            'reject store requisition',
+            'view store issues',
+            'view store returns',
+            'manage store requisition approval settings',
+
         ];
 
         // Create or update permissions in both custom Permission table and Spatie table

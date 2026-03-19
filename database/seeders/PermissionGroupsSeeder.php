@@ -128,6 +128,15 @@ class PermissionGroupsSeeder extends Seeder
                 'sort_order' => 12,
                 'is_active' => true
             ],
+            [
+                'name' => 'imprest',
+                'display_name' => 'Imprest Management',
+                'description' => 'Imprest requests, approvals, retirements and settings',
+                'color' => '#fd7e14',
+                'icon' => 'bx bx-money',
+                'sort_order' => 13,
+                'is_active' => true
+            ],
         ];
 
         // Create permission groups
@@ -694,6 +703,34 @@ class PermissionGroupsSeeder extends Seeder
                 'reject leave application',
                 'manage leave settings',
             ],
+            'imprest' => [
+                'view imprest requests',
+                'create imprest request',
+                'edit imprest request',
+                'delete imprest request',
+                'approve imprest',
+                'view imprest approvals',
+                'approve imprest approval',
+                'reject imprest approval',
+                'view imprest reports',
+                'manage imprest settings',
+                'manage imprest approval settings',
+                'manage retirement approval settings',
+                'view retirement approvals',
+                'approve retirement',
+                'reject retirement',
+            ],
+                'store_requisitions' => [
+                    'view store requisitions',
+                    'create store requisition',
+                    'edit store requisition',
+                    'delete store requisition',
+                    'approve store requisition',
+                    'reject store requisition',
+                    'view store issues',
+                    'view store returns',
+                    'manage store requisition approval settings',
+                ],
             'settings' => [
                 'view settings',
                 'edit settings',
@@ -761,7 +798,15 @@ class PermissionGroupsSeeder extends Seeder
                 'view charges',
                 'print cash collateral transactions'
             ],
-
+            [
+                'name' => 'store_requisitions',
+                'display_name' => 'Store Requisitions',
+                'description' => 'Store requisitions, issues, returns and approval settings',
+                'color' => '#20c997',
+                'icon' => 'bx bx-package',
+                'sort_order' => 14,
+                'is_active' => true
+            ],
         ];
 
         // Update permissions with their groups
@@ -775,16 +820,6 @@ class PermissionGroupsSeeder extends Seeder
                     $permission->update(['permission_group_id' => $permissionGroup->id]);
                     $updatedCount++;
                 }
-            }
-        }
-
-        // Set remaining permissions to 'settings' group
-        $settingsGroup = PermissionGroup::where('name', 'settings')->first();
-        if ($settingsGroup) {
-            $remainingPermissions = Permission::whereNull('permission_group_id')->get();
-            foreach ($remainingPermissions as $permission) {
-                $permission->update(['permission_group_id' => $settingsGroup->id]);
-                $updatedCount++;
             }
         }
 

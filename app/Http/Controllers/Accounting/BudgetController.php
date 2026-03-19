@@ -8,10 +8,13 @@ use App\Models\BudgetReallocation;
 use App\Models\Branch;
 use App\Models\ChartAccount;
 use App\Models\ApprovalHistory;
+use App\Models\Project;
 use App\Services\ApprovalService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
@@ -71,7 +74,12 @@ class BudgetController extends Controller
         // Get branches for the user's company
         $branches = Branch::where('company_id', $user->company_id)->orderBy('name')->get();
 
-        return view('budgets.create', compact('accounts', 'branches'));
+        // Project linking is optional, so we only provide available company projects.
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
+        return view('budgets.create', compact('accounts', 'branches', 'projects'));
     }
 
     /**
@@ -86,9 +94,14 @@ class BudgetController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'year' => 'required|integer|min:2020|max:2030',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:1000',
             'branch_id' => 'nullable|exists:branches,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'budget_lines' => 'required|array|min:1',
             'budget_lines.*.account_id' => 'required|exists:chart_accounts,id',
             'budget_lines.*.amount' => 'required|numeric|min:0',
@@ -103,10 +116,13 @@ class BudgetController extends Controller
 
             $budget = Budget::create([
                 'name' => $request->name,
-                'year' => $request->year,
+                'year' => Carbon::parse($request->start_date)->year,
                 'description' => $request->description,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
                 'user_id' => Auth::id(),
                 'branch_id' => $branchId,
+                'project_id' => $request->project_id,
                 'company_id' => Auth::user()->company_id,
             ]);
 
@@ -173,9 +189,13 @@ class BudgetController extends Controller
         // Get branches for the user's company
         $branches = Branch::where('company_id', $user->company_id)->orderBy('name')->get();
 
+        $projects = Project::forCompany($user->company_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_code']);
+
         $budget->load('budgetLines');
 
-        return view('budgets.edit', compact('budget', 'accounts', 'branches'));
+        return view('budgets.edit', compact('budget', 'accounts', 'branches', 'projects'));
     }
 
     /**
@@ -197,9 +217,14 @@ class BudgetController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'year' => 'required|integer|min:2020|max:2030',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:1000',
             'branch_id' => 'nullable|exists:branches,id',
+            'project_id' => [
+                'nullable',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
             'budget_lines' => 'required|array|min:1',
             'budget_lines.*.account_id' => 'required|exists:chart_accounts,id',
             'budget_lines.*.amount' => 'required|numeric|min:0',
@@ -214,9 +239,12 @@ class BudgetController extends Controller
 
             $budget->update([
                 'name' => $request->name,
-                'year' => $request->year,
+                'year' => Carbon::parse($request->start_date)->year,
                 'description' => $request->description,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
                 'branch_id' => $branchId,
+                'project_id' => $request->project_id,
             ]);
 
             // Delete existing budget lines

@@ -41,6 +41,7 @@
 
                         <div class="row">
                             <!-- All Store Requisitions -->
+                            @can('view store requisitions')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-primary position-relative">
                                     <div class="card-body text-center">
@@ -61,8 +62,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Pending Requisitions -->
+                            @can('approve store requisition')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-warning position-relative">
                                     <div class="card-body text-center">
@@ -83,8 +86,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Approved Requisitions -->
+                            @can('view store requisitions')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-success position-relative">
                                     <div class="card-body text-center">
@@ -105,8 +110,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Issued Requisitions -->
+                            @can('view store issues')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-info position-relative">
                                     <div class="card-body text-center">
@@ -127,8 +134,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Returned Items -->
+                            @can('view store returns')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-secondary position-relative">
                                     <div class="card-body text-center">
@@ -149,8 +158,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- Rejected Requisitions -->
+                            @can('view store requisitions')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-danger position-relative">
                                     <div class="card-body text-center">
@@ -171,6 +182,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
                         </div>
 
                         <!-- Quick Actions -->
@@ -184,26 +196,34 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
+                                            @can('create store requisition')
                                             <div class="col-md-3 mb-3">
                                                 <a href="{{ route('store-requisitions.requisitions.create') }}" class="btn btn-primary w-100">
                                                     <i class="bx bx-plus me-2"></i>New Requisition
                                                 </a>
                                             </div>
+                                            @endcan
+                                            @can('manage store requisition approval settings')
                                             <div class="col-md-3 mb-3">
                                                 <a href="{{ route('store-requisitions.approval-settings.index') }}" class="btn btn-secondary w-100">
                                                     <i class="bx bx-cog me-2"></i>Approval Settings
                                                 </a>
                                             </div>
+                                            @endcan
+                                            @can('view store issues')
                                             <div class="col-md-3 mb-3">
                                                 <a href="{{ route('store-issues.index') }}" class="btn btn-info w-100">
                                                     <i class="bx bx-package me-2"></i>Store Issues
                                                 </a>
                                             </div>
+                                            @endcan
+                                            @can('view store returns')
                                             <div class="col-md-3 mb-3">
                                                 <a href="{{ route('store-returns.index') }}" class="btn btn-warning w-100">
                                                     <i class="bx bx-undo me-2"></i>Store Returns
                                                 </a>
                                             </div>
+                                            @endcan
                                             <div class="col-md-3 mb-3">
                                                 <a href="{{ route('manuals.index') }}" class="btn btn-info w-100">
                                                     <i class="bx bx-book me-2"></i>User Manual
