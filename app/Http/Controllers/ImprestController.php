@@ -61,8 +61,14 @@ class ImprestController extends Controller
             })->sum('amount_issued'),
         ];
 
-        // Get imprest settings for modal
-        $branchId = $user->branch_id;
+        // Get imprest settings for modal using the active branch context.
+        $branchId = session('branch_id') ?? $user->branch_id;
+
+        // If branch is still missing, fall back to the first company branch.
+        if (!$branchId) {
+            $branchId = Branch::where('company_id', $companyId)->value('id');
+        }
+
         $imprestSettings = ImprestSettings::where('company_id', $companyId)
             ->where('branch_id', $branchId)
             ->first();
