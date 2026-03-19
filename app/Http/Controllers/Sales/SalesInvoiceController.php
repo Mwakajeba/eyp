@@ -2766,6 +2766,9 @@ class SalesInvoiceController extends Controller
      */
     public function exportPdf($encodedId)
     {
+        // PDF rendering can be slower on production due to CPU and I/O contention.
+        @set_time_limit(120);
+
         $invoiceId = Hashids::decode($encodedId)[0] ?? null;
 
         if (!$invoiceId) {
@@ -2779,21 +2782,38 @@ class SalesInvoiceController extends Controller
             'branch',
             'company',
             'createdBy',
-            'updatedBy',
-            'glTransactions.chartAccount',
-            'salesOrder.proforma'
+            'updatedBy'
         ])->findOrFail($invoiceId);
 
         // Load receipts separately since receipts() is a query method, not a relationship
         $receipts = $invoice->receipts()->with(['bankAccount', 'user'])->orderBy('date', 'asc')->orderBy('created_at', 'asc')->get();
 
-        $unpaidInvoices = SalesInvoice::where('customer_id', $invoice->customer_id)
-            ->whereColumn('total_amount', '>', 'paid_amount')
+        $oldInvoicesBalance = (float) SalesInvoice::where('customer_id', $invoice->customer_id)
             ->where('id', '!=', $invoice->id)
+            ->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) as old_balance')
+            ->value('old_balance');
+
+        $totalBalance = (float) $invoice->balance_due + $oldInvoicesBalance;
+
+        // Keep PDF payload light: only fetch fields used in the template.
+        $bankAccounts = BankAccount::query()
+            ->where('company_id', $invoice->company_id)
+            ->select(['id', 'name', 'bank_name', 'account_number'])
+            ->orderBy('name')
             ->get();
 
-        // Get bank accounts for mobile money details
-        $bankAccounts = \App\Models\BankAccount::all();
+        // Prepare logo as base64 once in controller (avoid file I/O logic in Blade).
+        $logoBase64 = null;
+        if ($invoice->company && $invoice->company->logo) {
+            $logoPath = public_path('storage/' . ltrim($invoice->company->logo, '/'));
+            if (file_exists($logoPath)) {
+                $imageData = @file_get_contents($logoPath);
+                $imageInfo = @getimagesize($logoPath);
+                if ($imageData !== false && $imageInfo !== false && isset($imageInfo['mime'])) {
+                    $logoBase64 = 'data:' . $imageInfo['mime'] . ';base64,' . base64_encode($imageData);
+                }
+            }
+        }
 
         // Apply paper size/orientation from settings
         $pageSize = strtoupper((string) (\App\Models\SystemSetting::getValue('document_page_size', 'A5')));
@@ -2824,7 +2844,7 @@ class SalesInvoiceController extends Controller
         $marginLeft = $convertToMm($marginLeftStr);
 
         try {
-            $pdf = \PDF::loadView('sales.invoices.pdf', compact('invoice', 'unpaidInvoices', 'bankAccounts', 'receipts'));
+            $pdf = \PDF::loadView('sales.invoices.pdf', compact('invoice', 'bankAccounts', 'receipts', 'oldInvoicesBalance', 'totalBalance', 'logoBase64'));
             $pdf->setPaper($pageSize, $orientation);
             
             // Set margins programmatically using setOptions (dompdf expects numeric values in mm)

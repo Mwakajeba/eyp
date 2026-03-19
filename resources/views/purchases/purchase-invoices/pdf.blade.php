@@ -285,28 +285,10 @@
             @php
             $company = $company ?? ($invoice->company ?? ($invoice->branch->company ?? null));
             @endphp
-            @if($company && $company->logo)
-            @php
-            // Logo is stored in storage/app/public (via "public" disk)
-            $logo = $company->logo; // e.g. "uploads/companies/company_1_1768466462.png"
-            $logoPath = public_path('storage/' . ltrim($logo, '/'));
-
-            // Convert image to base64 for DomPDF compatibility
-            $logoBase64 = null;
-            if (file_exists($logoPath)) {
-            $imageData = file_get_contents($logoPath);
-            $imageInfo = getimagesize($logoPath);
-            if ($imageInfo !== false) {
-            $mimeType = $imageInfo['mime'];
-            $logoBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
-            }
-            }
-            @endphp
-            @if($logoBase64)
+            @if(!empty($logoBase64))
             <div class="logo-section" style="float: left; width: 45%;">
                 <img src="{{ $logoBase64 }}" alt="{{ $company->name . ' logo' }}" class="company-logo">
             </div>
-            @endif
             @endif
             <div style="float: right; width: 50%; text-align: left; margin-left: 15%;">
                 <div class="company-name">{{ $company->name ?? 'SmartFinance' }}</div>
@@ -513,9 +495,6 @@
         @endif
 
         {{-- Payment History --}}
-        @php
-        $payments = $payments ?? $invoice->payments()->orderBy('date', 'asc')->orderBy('created_at', 'asc')->with(['bankAccount'])->get();
-        @endphp
         @if($payments && $payments->count() > 0)
         <div class="receipt-history">
             <div class="receipt-history-title">PAYMENT HISTORY</div>

@@ -337,6 +337,9 @@ class SalesOrderController extends Controller
      */
     public function exportPdf($encodedId)
     {
+        // PDF rendering can be slower on production due to CPU and I/O contention.
+        @set_time_limit(120);
+
         $id = Hashids::decode($encodedId)[0] ?? null;
         abort_unless($id, 404);
         
@@ -348,7 +351,20 @@ class SalesOrderController extends Controller
             'createdBy'
         ])->findOrFail($id);
 
-        $html = view('sales.orders.pdf', compact('order'))->render();
+        // Prepare logo as base64 once in controller (avoid file I/O in Blade).
+        $logoBase64 = null;
+        if ($order->company && $order->company->logo) {
+            $logoPath = public_path('storage/' . ltrim($order->company->logo, '/'));
+            if (file_exists($logoPath)) {
+                $imageData = @file_get_contents($logoPath);
+                $imageInfo = @getimagesize($logoPath);
+                if ($imageData !== false && $imageInfo !== false && isset($imageInfo['mime'])) {
+                    $logoBase64 = 'data:' . $imageInfo['mime'] . ';base64,' . base64_encode($imageData);
+                }
+            }
+        }
+
+        $html = view('sales.orders.pdf', compact('order', 'logoBase64'))->render();
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('A4');
         $filename = 'SalesOrder_' . $order->order_number . '.pdf';
         return $pdf->download($filename);
