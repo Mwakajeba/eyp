@@ -76,9 +76,9 @@
                         <a href="{{ route('sales.invoices.export-pdf', $invoice->encoded_id) }}" class="btn btn-info me-1" target="_blank">
                             <i class="bx bx-download me-1"></i>Export PDF
                         </a>
-                        <a href="{{ route('sales.invoices.print', $invoice->encoded_id) }}" class="btn btn-danger me-1" target="_blank">
+                        <!-- <a href="{{ route('sales.invoices.print', $invoice->encoded_id) }}" class="btn btn-danger me-1" target="_blank">
                             <i class="bx bx-printer me-1"></i>Print Invoice
-                        </a>
+                        </a> -->
                         <div class="btn-group me-1">
                             <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bx bx-copy me-1"></i>Copy To
@@ -90,9 +90,9 @@
                                 <li><a class="dropdown-item" href="{{ route('sales.credit-notes.create-from-invoice', $invoice->encoded_id) }}"><i class="bx bx-undo me-2"></i>Credit Note</a></li>
                             </ul>
                         </div>
-                        <a href="{{ route('sales.invoices.index') }}" class="btn btn-secondary">
+                        <!-- <a href="{{ route('sales.invoices.index') }}" class="btn btn-secondary">
                             <i class="bx bx-arrow-back me-1"></i>Back to Invoices
-                        </a>
+                        </a> -->
                     </div>
                 </div>
             </div>
@@ -581,6 +581,7 @@
                                                 'date' => $payment->date,
                                                 'amount' => $payment->amount,
                                                 'description' => $payment->description,
+                                                'attachment' => $payment->attachment,
                                                 'user' => $payment->user,
                                                 'bank_account_id' => $payment->bank_account_id,
                                                 'cash_deposit_id' => $payment->cash_deposit_id,
@@ -599,6 +600,7 @@
                                                 'date' => $receipt->date,
                                                 'amount' => $receipt->amount,
                                                 'description' => $receipt->description,
+                                                'attachment' => $receipt->attachment,
                                                 'user' => $receipt->user,
                                                 'bank_account_id' => $receipt->bank_account_id,
                                                 'cash_deposit_id' => null,
@@ -649,6 +651,12 @@
                                                    class="btn btn-sm btn-primary me-1" title="Edit Receipt">
                                                     <i class="bx bx-edit me-1"></i>Edit
                                                 </a>
+                                                @if(!empty($payment['attachment']))
+                                                <a href="{{ asset('storage/' . $payment['attachment']) }}"
+                                                   class="btn btn-sm btn-info me-1" title="Download Attachment" download>
+                                                    <i class="bx bx-download me-1"></i>Download
+                                                </a>
+                                                @endif
                                                 @endif
                                                 @if($payment['approved'])
                                                 <button type="button" class="btn btn-sm btn-danger"
