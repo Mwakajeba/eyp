@@ -2795,13 +2795,6 @@ class SalesInvoiceController extends Controller
 
         $totalBalance = (float) $invoice->balance_due + $oldInvoicesBalance;
 
-        // Keep PDF payload light: only fetch fields used in the template.
-        $bankAccounts = BankAccount::query()
-            ->where('company_id', $invoice->company_id)
-            ->select(['id', 'name', 'bank_name', 'account_number'])
-            ->orderBy('name')
-            ->get();
-
         // Prepare logo as base64 once in controller (avoid file I/O logic in Blade).
         $logoBase64 = null;
         if ($invoice->company && $invoice->company->logo) {
@@ -2844,7 +2837,7 @@ class SalesInvoiceController extends Controller
         $marginLeft = $convertToMm($marginLeftStr);
 
         try {
-            $pdf = \PDF::loadView('sales.invoices.pdf', compact('invoice', 'bankAccounts', 'receipts', 'oldInvoicesBalance', 'totalBalance', 'logoBase64'));
+            $pdf = \PDF::loadView('sales.invoices.pdf', compact('invoice', 'receipts', 'oldInvoicesBalance', 'totalBalance', 'logoBase64'));
             $pdf->setPaper($pageSize, $orientation);
             
             // Set margins programmatically using setOptions (dompdf expects numeric values in mm)

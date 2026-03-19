@@ -281,16 +281,12 @@
         </div>
         <div style="clear: both;"></div>
 
-        @if($bankAccounts && $bankAccounts->count() > 0)
         <div class="payment-method-bar" style="text-align: center;">
             <strong>PAYMENT METHOD :</strong>
         </div>
         <div class="payment-details">
-            @foreach($bankAccounts as $account)
-            <strong>{{ strtoupper($account->name ?? $account->bank_name ?? 'BANK') }}:</strong> {{ $account->account_number ?? 'N/A' }} &nbsp;&nbsp;
-            @endforeach
+            <strong>BANK TRANSFER, CHEQUE OR CASH AT OFFICE</strong>
         </div>
-        @endif
 
 
 

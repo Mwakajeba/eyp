@@ -915,7 +915,7 @@ class PurchaseInvoiceController extends Controller
         $companyId = $purchaseInvoice->company_id ?? $purchaseInvoice->branch->company_id ?? auth()->user()->company_id;
         $bankAccounts = BankAccount::query()
             ->where('company_id', $companyId)
-            ->select(['id', 'name', 'bank_name', 'account_number'])
+            ->select(['id', 'name', 'account_number'])
             ->orderBy('name')
             ->get();
 
