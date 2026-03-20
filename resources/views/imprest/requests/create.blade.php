@@ -514,6 +514,26 @@ $(document).ready(function() {
         width: '100%'
     });
 
+    $('#project_id').select2({
+        theme: 'bootstrap-5',
+        width: '100%'
+    });
+
+    $('#project_activity_id').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: '-- Select Activity --',
+        allowClear: true
+    });
+
+    $('#modal_chart_account').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        dropdownParent: $('#itemModal'),
+        placeholder: 'Select Chart Account',
+        allowClear: true
+    });
+
     // =========== IMPREST ITEMS FUNCTIONALITY ===========
 
     // Add item button
@@ -780,6 +800,12 @@ $(document).ready(function() {
     function formatCurrency(value) {
         return (Number(value) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+
+    // Expose modal actions globally because inline onclick handlers call these names.
+    window.addItemFromModal = addItemToTable;
+    window.hideItemModal = function() {
+        $('#itemModal').modal('hide');
+    };
 
     // Initialize
     toggleNoItemsAlert();
