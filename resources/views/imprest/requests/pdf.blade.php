@@ -51,14 +51,13 @@
             letter-spacing: 0.4px;
         }
 
-        .logo-wrap {
-            text-align: center;
-            margin-bottom: 6px;
+        .logo-section {
+            margin-bottom: 10px;
         }
 
         .company-logo {
-            max-width: 90px;
-            max-height: 90px;
+            max-height: 80px;
+            max-width: 120px;
             object-fit: contain;
         }
 
@@ -245,18 +244,20 @@
     @endphp
 
     <div class="container">
-        @if(!empty($logoBase64))
-            <div class="logo-wrap">
-                <img src="{{ $logoBase64 }}" alt="Logo" class="company-logo">
+        <div class="text-left">
+            @if(!empty($logoBase64))
+            <div class="logo-section" style="float: left; width: 45%;">
+                <img src="{{ $logoBase64 }}" alt="{{ ($imprestRequest->company->name ?? 'Company') . ' logo' }}" class="company-logo">
             </div>
-        @endif
-
-        <div class="text-center">
-            <div class="company-name">Empower Youth Preosperity</div>
-            <div class="company-details">
-                Mbeya - HQ | Sisimba, Uzunguni,Mbeya,Tanzania. | 0789439900 | Eyp@eyp.or.tz
+            @endif
+            <div style="float: right; width: 50%; text-align: left; margin-left: 15%;">
+                <div class="company-name">Empower Youth Preosperity</div>
+                <div class="company-details">
+                    Mbeya - HQ | Sisimba, Uzunguni,Mbeya,Tanzania. | 0789439900 | Eyp@eyp.or.tz
+                </div>
             </div>
         </div>
+        <div style="clear: both;"></div>
 
         <hr>
         <div class="document-title">IMPREST REQUEST FORM</div>
