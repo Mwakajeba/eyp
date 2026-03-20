@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
@@ -52,6 +53,11 @@ class Project extends Model
         return $this->belongsToMany(Customer::class, 'donor_project_assignments', 'project_id', 'customer_id')
             ->withPivot(['company_id', 'assigned_by'])
             ->withTimestamps();
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ProjectActivity::class);
     }
 
     public function scopeForCompany($query, int $companyId)

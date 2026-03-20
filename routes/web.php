@@ -3566,6 +3566,18 @@ Route::prefix('asset-management')->name('assets.')->middleware(['auth', 'company
 Route::prefix('projects')->name('projects.')->middleware(['auth', 'company.scope', 'require.branch'])->group(function () {
     Route::get('/', [ProjectController::class, 'index'])->name('index');
 
+    // Project activities CRUD
+    Route::get('/activities', [ProjectController::class, 'activityIndex'])->name('activities.index');
+    Route::get('/activities/create', [ProjectController::class, 'activityCreate'])->name('activities.create');
+    Route::post('/activities', [ProjectController::class, 'activityStore'])->name('activities.store');
+    Route::get('/activities/{activity}/sub-activities', [ProjectController::class, 'subActivityIndex'])->name('activities.sub-activities.index');
+    Route::post('/activities/{activity}/sub-activities', [ProjectController::class, 'subActivityStore'])->name('activities.sub-activities.store');
+    Route::put('/activities/{activity}/sub-activities/{subActivity}', [ProjectController::class, 'subActivityUpdate'])->name('activities.sub-activities.update');
+    Route::delete('/activities/{activity}/sub-activities/{subActivity}', [ProjectController::class, 'subActivityDestroy'])->name('activities.sub-activities.destroy');
+    Route::get('/activities/{activity}/edit', [ProjectController::class, 'activityEdit'])->name('activities.edit');
+    Route::put('/activities/{activity}', [ProjectController::class, 'activityUpdate'])->name('activities.update');
+    Route::delete('/activities/{activity}', [ProjectController::class, 'activityDestroy'])->name('activities.destroy');
+
     // Project CRUD
     Route::get('/project', [ProjectController::class, 'projectIndex'])->name('project.index');
     Route::get('/project/create', [ProjectController::class, 'projectCreate'])->name('project.create');
