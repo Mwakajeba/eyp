@@ -15,6 +15,15 @@
             color: #000;
         }
 
+        :root {
+            --brand-green: #0f6b3f;
+            --brand-green-dark: #0b4f2e;
+            --brand-green-soft: #e8f5ee;
+            --brand-orange: #f08a24;
+            --brand-orange-soft: #fff3e6;
+            --line-gray: #cbd5e1;
+        }
+
         .container {
             width: 100%;
         }
@@ -25,7 +34,7 @@
         .company-name {
             font-size: 18px;
             font-weight: bold;
-            color: #1e40af;
+            color: var(--brand-green);
         }
 
         .company-details {
@@ -36,14 +45,26 @@
         .document-title {
             font-size: 18px;
             font-weight: bold;
-            color: #1e40af;
+            color: var(--brand-green-dark);
             text-align: center;
             margin: 10px 0;
+            letter-spacing: 0.4px;
+        }
+
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .company-logo {
+            max-width: 90px;
+            max-height: 90px;
+            object-fit: contain;
         }
 
         hr {
             border: none;
-            border-top: 2px solid #3b82f6;
+            border-top: 3px solid var(--brand-orange);
             margin: 8px 0;
         }
 
@@ -59,7 +80,7 @@
         }
 
         .box {
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--line-gray);
             padding: 8px;
             border-radius: 3px;
             min-height: 96px;
@@ -77,7 +98,7 @@
         }
 
         .box td:first-child {
-            color: #1e40af;
+            color: var(--brand-green-dark);
             font-weight: bold;
             width: 45%;
         }
@@ -85,16 +106,18 @@
         .section-title {
             font-size: 12px;
             font-weight: bold;
-            color: #1e40af;
+            color: var(--brand-green-dark);
             margin: 12px 0 6px 0;
+            border-left: 4px solid var(--brand-orange);
+            padding-left: 6px;
         }
 
         .desc-box {
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--line-gray);
             padding: 8px;
             font-size: 10px;
             margin-bottom: 8px;
-            background: #f8fafc;
+            background: var(--brand-orange-soft);
         }
 
         .items-table {
@@ -106,36 +129,38 @@
 
         .items-table th,
         .items-table td {
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--line-gray);
             padding: 5px;
             vertical-align: top;
         }
 
         .items-table th {
-            background-color: #1e3a8a;
+            background-color: var(--brand-green);
             color: #fff;
             font-weight: bold;
             text-align: left;
         }
 
         .items-table tbody tr:nth-child(even) {
-            background: #f8fafc;
+            background: var(--brand-green-soft);
         }
 
         .total-row td {
             font-weight: bold;
-            background: #e2e8f0;
+            background: var(--brand-orange-soft);
+            color: var(--brand-green-dark);
         }
 
         .status-chip {
             display: inline-block;
-            border: 1px solid #94a3b8;
+            border: 1px solid var(--brand-orange);
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
-            background: #f8fafc;
+            background: var(--brand-green-soft);
+            color: var(--brand-green-dark);
         }
 
         .footer-note {
@@ -191,7 +216,7 @@
 
         foreach (($completedApprovals ?? collect()) as $approval) {
             $approvalRows->push([
-                'level' => 'Level ' . ($approval->level ?? 'N/A'),
+                'level' => !empty($approval->level) ? 'Level ' . $approval->level : null,
                 'action' => ucfirst((string) ($approval->status ?? 'approved')),
                 'by' => $approval->approver->name ?? 'N/A',
                 'date' => $approval->action_date ?? $approval->updated_at,
@@ -205,21 +230,36 @@
                 return $r['date'] instanceof \Carbon\CarbonInterface ? $r['date']->timestamp : strtotime((string) $r['date']);
             })
             ->values();
+
+        $autoLevel = 1;
+        $approvalRows = $approvalRows->map(function ($row) use (&$autoLevel) {
+            if (empty($row['level']) || $row['level'] === 'Level N/A') {
+                $row['level'] = 'Level ' . $autoLevel;
+                $autoLevel++;
+            } elseif (preg_match('/^Level\s*(\d+)/i', (string) $row['level'], $m)) {
+                $autoLevel = max($autoLevel, ((int) $m[1]) + 1);
+            }
+
+            return $row;
+        });
     @endphp
 
     <div class="container">
+        @if(!empty($logoBase64))
+            <div class="logo-wrap">
+                <img src="{{ $logoBase64 }}" alt="Logo" class="company-logo">
+            </div>
+        @endif
+
         <div class="text-center">
-            <div class="company-name">{{ $imprestRequest->company->name ?? config('app.name') }}</div>
+            <div class="company-name">Empower Youth Preosperity</div>
             <div class="company-details">
-                {{ $imprestRequest->branch->name ?? 'Main Branch' }}
-                @if(!empty($imprestRequest->company->address)) | {{ $imprestRequest->company->address }} @endif
-                @if(!empty($imprestRequest->company->phone)) | {{ $imprestRequest->company->phone }} @endif
-                @if(!empty($imprestRequest->company->email)) | {{ $imprestRequest->company->email }} @endif
+                Mbeya - HQ | Sisimba, Uzunguni,Mbeya,Tanzania. | 0789439900 | Eyp@eyp.or.tz
             </div>
         </div>
 
         <hr>
-        <div class="document-title">IMPREST REQUEST EXPORT</div>
+        <div class="document-title">IMPREST REQUEST FORM</div>
 
         <table class="info-grid">
             <tr>
