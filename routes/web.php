@@ -2622,6 +2622,7 @@ Route::prefix('imprest')->name('imprest.')->middleware('auth')->group(function (
     Route::prefix('requests')->name('requests.')->group(function () {
         Route::get('/', [App\Http\Controllers\ImprestController::class, 'requests'])->name('index');
         Route::get('/create', [App\Http\Controllers\ImprestController::class, 'create'])->name('create');
+        Route::get('/project-activities/{projectId}', [App\Http\Controllers\ImprestController::class, 'getProjectActivities'])->name('project-activities');
         Route::post('/', [App\Http\Controllers\ImprestController::class, 'store'])->name('store');
         Route::get('/{id}', [App\Http\Controllers\ImprestController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [App\Http\Controllers\ImprestController::class, 'edit'])->name('edit');

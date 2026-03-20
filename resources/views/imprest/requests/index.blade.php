@@ -78,6 +78,8 @@
                                 <th>Request #</th>
                                 <th>Employee</th>
                                 <th>Department</th>
+                                <th>Project</th>
+                                <th>Activity</th>
                                 <th>Purpose</th>
                                 <th>Amount</th>
                                 <th>Date Required</th>
@@ -114,6 +116,8 @@ $(document).ready(function() {
             {data: 'request_number', name: 'request_number'},
             {data: 'employee_name', name: 'employee.name'},
             {data: 'department_name', name: 'department.name'},
+            {data: 'project_name', name: 'project.name', orderable: false},
+            {data: 'activity_name', name: 'projectActivity.description', orderable: false},
             {data: 'purpose', name: 'purpose'},
             {data: 'amount_formatted', name: 'amount_requested', className: 'text-end'},
             {data: 'date_required', name: 'date_required'},
