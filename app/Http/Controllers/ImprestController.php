@@ -18,6 +18,7 @@ use App\Models\Branch;
 use App\Models\BankAccount;
 use App\Models\ChartAccount;
 use App\Models\Project;
+use App\Models\ProjectActivity;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -98,7 +99,7 @@ class ImprestController extends Controller
      */
     private function getRequestsDataTable(Request $request)
     {
-        $query = ImprestRequest::with(['employee', 'department', 'creator'])
+        $query = ImprestRequest::with(['employee', 'department', 'creator', 'project', 'projectActivity'])
             ->forCompany(Auth::user()->company_id);
 
         // Apply filters
@@ -124,6 +125,17 @@ class ImprestController extends Controller
             })
             ->addColumn('department_name', function ($row) {
                 return $row->department->name ?? 'N/A';
+            })
+            ->addColumn('project_name', function ($row) {
+                return $row->project->name ?? '—';
+            })
+            ->addColumn('activity_name', function ($row) {
+                if ($row->projectActivity) {
+                    return $row->projectActivity->activity_code
+                        ? $row->projectActivity->activity_code . ' – ' . $row->projectActivity->description
+                        : $row->projectActivity->description;
+                }
+                return '—';
             })
             ->addColumn('date_required', function ($row) {
                 return Carbon::parse($row->date_required)
@@ -190,6 +202,21 @@ class ImprestController extends Controller
     }
 
     /**
+     * Return activities for a given project (AJAX)
+     */
+    public function getProjectActivities(Request $request, $projectId)
+    {
+        $companyId = Auth::user()->company_id;
+
+        $activities = ProjectActivity::where('project_id', $projectId)
+            ->where('company_id', $companyId)
+            ->orderBy('activity_code')
+            ->get(['id', 'activity_code', 'description']);
+
+        return response()->json($activities);
+    }
+
+    /**
      * Store a newly created imprest request
      */
     public function store(Request $request)
@@ -197,8 +224,12 @@ class ImprestController extends Controller
         $request->validate([
             'department_id' => 'required|exists:hr_departments,id',
             'project_id' => [
-                'nullable',
+                'required',
                 Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
+            ],
+            'project_activity_id' => [
+                'nullable',
+                Rule::exists('project_activities', 'id')->where(fn ($query) => $query->where('company_id', Auth::user()->company_id)),
             ],
             'purpose' => 'required|string|max:500',
             'amount_requested' => 'required|numeric|min:0.01',
@@ -385,6 +416,7 @@ class ImprestController extends Controller
                 'employee_id' => $user->id,
                 'department_id' => $request->department_id,
                 'project_id' => $request->project_id,
+                'project_activity_id' => $request->project_activity_id ?: null,
                 'company_id' => $user->company_id,
                 'branch_id' => $branchId,
                 'purpose' => $request->purpose,

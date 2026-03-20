@@ -80,9 +80,9 @@
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label for="project_id" class="form-label">Project</label>
-                            <select name="project_id" id="project_id" class="form-select select2-single @error('project_id') is-invalid @enderror">
-                                <option value="">None</option>
+                            <label for="project_id" class="form-label">Project <span class="text-danger">*</span></label>
+                            <select name="project_id" id="project_id" class="form-select select2-single @error('project_id') is-invalid @enderror" required>
+                                <option value="">-- Select Project --</option>
                                 @foreach($projects as $project)
                                 <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
                                     {{ $project->project_code ? $project->project_code . ' - ' : '' }}{{ $project->name }}
@@ -92,7 +92,17 @@
                             @error('project_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Optional: link this imprest request to a project.</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="activity-wrapper">
+                            <label for="project_activity_id" class="form-label">Project Activity <span class="text-muted">(Optional)</span></label>
+                            <select name="project_activity_id" id="project_activity_id" class="form-select select2-single @error('project_activity_id') is-invalid @enderror" {{ old('project_id') ? '' : 'disabled' }}>
+                                <option value="">-- Select project first --</option>
+                            </select>
+                            @error('project_activity_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted" id="activity-hint">Select a project to load its activities.</small>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -313,192 +323,6 @@
 </div>
 @endsection
 
-<script nonce="{{ $cspNonce ?? '' }}">
-// Global function to show modal - defined immediately
-window.showItemModal = function() {
-    console.log('showItemModal called');
-    
-    // Clear modal fields
-    document.getElementById('modal_chart_account').value = '';
-    document.getElementById('modal_notes').value = '';
-    document.getElementById('modal_amount').value = '';
-    document.getElementById('modal-line-total').textContent = '0.00';
-    
-    // Show modal
-    document.getElementById('itemModal').style.display = 'block';
-    document.getElementById('itemModal').classList.add('show');
-    document.body.classList.add('modal-open');
-    
-    // Add backdrop
-    var backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop fade show';
-    backdrop.id = 'modal-backdrop';
-    document.body.appendChild(backdrop);
-    
-    // Initialize Select2 for chart account dropdown
-    setTimeout(function() {
-        console.log('Initializing Select2...');
-        try {
-            // Check if Select2 is available
-            if (typeof $ !== 'undefined' && $.fn.select2) {
-                // Destroy any existing instance
-                if ($('#modal_chart_account').hasClass('select2-hidden-accessible')) {
-                    $('#modal_chart_account').select2('destroy');
-                }
-                
-                // Initialize Select2
-                $('#modal_chart_account').select2({
-                    dropdownParent: $('#itemModal'),
-                    placeholder: 'Search and select chart account...',
-                    allowClear: true,
-                    width: '100%',
-                    theme: 'bootstrap-5'
-                });
-                console.log('Select2 initialized successfully');
-            } else {
-                console.log('Select2 not available, using basic select');
-            }
-        } catch (e) {
-            console.error('Select2 initialization failed:', e);
-        }
-    }, 200);
-    
-    console.log('Modal displayed with Select2 initialized');
-    
-    // Add event listener for amount calculation
-    document.getElementById('modal_amount').addEventListener('input', function() {
-        const amount = parseFloat(this.value) || 0;
-        document.getElementById('modal-line-total').textContent = formatCurrency(amount);
-    });
-};
-
-// Function to hide modal
-window.hideItemModal = function() {
-    // Destroy Select2 before hiding modal
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        if ($('#modal_chart_account').hasClass('select2-hidden-accessible')) {
-            $('#modal_chart_account').select2('destroy');
-        }
-    }
-    
-    document.getElementById('itemModal').style.display = 'none';
-    document.getElementById('itemModal').classList.remove('show');
-    document.body.classList.remove('modal-open');
-    
-    var backdrop = document.getElementById('modal-backdrop');
-    if (backdrop) {
-        backdrop.remove();
-    }
-};
-
-// Global formatCurrency function
-window.formatCurrency = function(value) {
-    return (Number(value) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-// Global function to add item from modal
-window.addItemFromModal = function() {
-    console.log('addItemFromModal called');
-    
-    const chartAccountSelect = document.getElementById('modal_chart_account');
-    const chartAccountId = chartAccountSelect.value;
-    const chartAccountText = chartAccountSelect.options[chartAccountSelect.selectedIndex].text;
-    const notes = document.getElementById('modal_notes').value;
-    const amount = parseFloat(document.getElementById('modal_amount').value) || 0;
-
-    // Validation
-    if (!chartAccountId) {
-        alert('Please select a chart account.');
-        return;
-    }
-
-    if (amount <= 0) {
-        alert('Please enter a valid amount greater than 0.');
-        return;
-    }
-
-    // Check for duplicates
-    const existingRows = document.querySelectorAll('#items-tbody input[name$="[chart_account_id]"]');
-    for (let input of existingRows) {
-        if (input.value == chartAccountId) {
-            alert('This chart account has already been added. Please select a different account.');
-            return;
-        }
-    }
-
-    // Add item to table
-    window.addItemToTable(chartAccountId, chartAccountText, notes, amount);
-};
-
-// Global function to add item to table
-window.addItemToTable = function(chartAccountId, chartAccountText, notes, amount) {
-    console.log('Adding item to table:', chartAccountId, chartAccountText, notes, amount);
-    
-    // Get current item counter
-    const itemCounter = document.querySelectorAll('#items-tbody tr').length;
-    
-    const row = `
-        <tr data-row-id="${itemCounter}">
-            <td>
-                <strong>${chartAccountText}</strong>
-                <input type="hidden" name="items[${itemCounter}][chart_account_id]" value="${chartAccountId}">
-            </td>
-            <td>
-                <span class="item-notes">${notes || 'No notes'}</span>
-                <input type="hidden" name="items[${itemCounter}][notes]" value="${notes}">
-            </td>
-            <td>
-                <span class="fw-bold item-amount-display">${window.formatCurrency(amount)}</span>
-                <input type="hidden" class="item-amount" name="items[${itemCounter}][amount]" value="${amount}">
-            </td>
-            <td>
-                <button type="button" class="btn btn-outline-danger btn-sm remove-item" onclick="window.removeItem(this)">
-                    <i class="bx bx-trash"></i>
-                </button>
-            </td>
-        </tr>
-    `;
-
-    document.getElementById('items-tbody').insertAdjacentHTML('beforeend', row);
-    window.hideItemModal();
-    window.calculateTotals();
-    window.toggleNoItemsAlert();
-};
-
-// Global function to remove item
-window.removeItem = function(button) {
-    button.closest('tr').remove();
-    window.calculateTotals();
-    window.toggleNoItemsAlert();
-};
-
-// Global function to calculate totals
-window.calculateTotals = function() {
-    let total = 0;
-    const amountInputs = document.querySelectorAll('#items-tbody input.item-amount');
-    
-    amountInputs.forEach(function(input) {
-        const amount = parseFloat(input.value) || 0;
-        total += amount;
-    });
-
-    document.getElementById('total-amount').textContent = window.formatCurrency(total);
-    document.getElementById('amount_requested').value = total.toFixed(2);
-};
-
-// Global function to toggle no items alert
-window.toggleNoItemsAlert = function() {
-    const tbody = document.getElementById('items-tbody');
-    const alert = document.getElementById('no-items-alert');
-    
-    if (tbody.children.length === 0) {
-        if (alert) alert.style.display = 'block';
-    } else {
-        if (alert) alert.style.display = 'none';
-    }
-};
-</script>
-
 @push('styles')
 <style>
     /* Budget validation modal styling */
@@ -544,6 +368,77 @@ window.showItemModal = function() {
 
 $(document).ready(function() {
     console.log('Document ready - Imprest create form loaded');
+
+    // Ensure project->activity loading is bound after jQuery/bootstrap scripts are ready.
+    const activitiesBaseUrl = '{{ url("imprest/requests/project-activities") }}';
+    const oldProjectId = '{{ old("project_id") }}';
+    const oldActivityId = '{{ old("project_activity_id") }}';
+
+    function bindProjectActivities(projectId, selectedActivityId) {
+        const $project = $('#project_id');
+        const $activity = $('#project_activity_id');
+        const $hint = $('#activity-hint');
+
+        if (! $activity.length || ! $project.length) {
+            return;
+        }
+
+        if (!projectId) {
+            if ($activity.hasClass('select2-hidden-accessible')) {
+                $activity.select2('destroy');
+            }
+            $activity.prop('disabled', true).html('<option value="">-- Select project first --</option>');
+            $hint.text('Select a project to load its activities.');
+            return;
+        }
+
+        $activity.prop('disabled', true).html('<option value="">Loading...</option>');
+
+        $.ajax({
+            url: activitiesBaseUrl + '/' + encodeURIComponent(projectId),
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                let options = '<option value="">-- Select Activity --</option>';
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    $hint.text('This project has no activities defined.');
+                } else {
+                    $hint.text(data.length + ' activit' + (data.length === 1 ? 'y' : 'ies') + ' available.');
+                }
+
+                (data || []).forEach(function(activity) {
+                    const label = activity.activity_code
+                        ? activity.activity_code + ' - ' + activity.description
+                        : activity.description;
+                    const selected = String(activity.id) === String(selectedActivityId) ? ' selected' : '';
+                    options += '<option value="' + activity.id + '"' + selected + '>' + label + '</option>';
+                });
+
+                if ($activity.hasClass('select2-hidden-accessible')) {
+                    $activity.select2('destroy');
+                }
+
+                $activity.html(options).prop('disabled', false);
+                $activity.select2({
+                    placeholder: '-- Select Activity --',
+                    allowClear: true,
+                    width: '100%'
+                });
+            },
+            error: function(xhr) {
+                $activity.prop('disabled', true).html('<option value="">Failed to load activities</option>');
+                $hint.text('Could not load activities. Please try again.');
+                console.error('Activity load failed', xhr.status, xhr.responseText);
+            }
+        });
+    }
+
+    $('#project_id').off('change.projectActivity').on('change.projectActivity', function() {
+        bindProjectActivities($(this).val(), null);
+    });
+
+    bindProjectActivities(oldProjectId || $('#project_id').val(), oldActivityId);
     
     const form = $('#imprestRequestForm');
     const submitBtn = $('#submitBtn');
@@ -655,51 +550,6 @@ $(document).ready(function() {
         const amount = parseFloat($('#modal_amount').val()) || 0;
         $('#modal-line-total').text(formatCurrency(amount));
     }
-
-    function addItemToTable() {
-        const chartAccountId = $('#modal_chart_account').val();
-        const chartAccountText = $('#modal_chart_account option:selected').text();
-        const notes = $('#modal_notes').val();
-        const amount = parseFloat($('#modal_amount').val()) || 0;
-
-        if (!chartAccountId) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Missing Information',
-                text: 'Please select a chart account.',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        if (amount <= 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Amount',
-                text: 'Please enter a valid amount greater than 0.',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-
-        // Check if chart account already exists
-        let exists = false;
-        $('#items-tbody input[name$="[chart_account_id]"]').each(function() {
-            if ($(this).val() == chartAccountId) {
-                exists = true;
-                return false;
-            }
-        });
-
-        if (exists) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Duplicate Account',
-                text: 'This chart account has already been added. Please select a different account.',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
 
     function addItemToTable() {
         const chartAccountId = $('#modal_chart_account').val();
@@ -876,8 +726,6 @@ $(document).ready(function() {
             }
         });
     }
-
-    function addItemToTableDirectly(chartAccountId, chartAccountText, notes, amount) {
 
     function addItemToTableDirectly(chartAccountId, chartAccountText, notes, amount) {
         const row = `
