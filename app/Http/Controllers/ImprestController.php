@@ -44,21 +44,37 @@ class ImprestController extends Controller
         $companyId = $user->company_id;
 
         // Get statistics for dashboard cards
+        $ownOnly = $this->shouldRestrictToOwnImprests($user);
+
+        $baseQuery = ImprestRequest::forCompany($companyId);
+        if ($ownOnly) {
+            $baseQuery->where(function ($q) use ($user) {
+                $q->where('employee_id', $user->id)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
         $stats = [
-            'pending_requests' => ImprestRequest::forCompany($companyId)->byStatus('pending')->count(),
-            'checked_requests' => ImprestRequest::forCompany($companyId)->byStatus('checked')->count(),
-            'approved_requests' => ImprestRequest::forCompany($companyId)->byStatus('approved')->count(),
-            'disbursed_requests' => ImprestRequest::forCompany($companyId)->byStatus('disbursed')->count(),
-            'liquidated_requests' => ImprestRequest::forCompany($companyId)->byStatus('liquidated')->count(),
-            'closed_requests' => ImprestRequest::forCompany($companyId)->byStatus('closed')->count(),
+            'pending_requests' => (clone $baseQuery)->byStatus('pending')->count(),
+            'checked_requests' => (clone $baseQuery)->byStatus('checked')->count(),
+            'approved_requests' => (clone $baseQuery)->byStatus('approved')->count(),
+            'disbursed_requests' => (clone $baseQuery)->byStatus('disbursed')->count(),
+            'liquidated_requests' => (clone $baseQuery)->byStatus('liquidated')->count(),
+            'closed_requests' => (clone $baseQuery)->byStatus('closed')->count(),
             'pending_retirement_requests' => RetirementApproval::where('approver_id', $user->id)
                 ->where('status', 'pending')
                 ->count(),
-            'total_amount_requested' => ImprestRequest::forCompany($companyId)
+            'total_amount_requested' => (clone $baseQuery)
                 ->whereIn('status', ['approved', 'disbursed', 'liquidated', 'closed'])
                 ->sum('amount_requested'),
-            'total_amount_disbursed' => ImprestDisbursement::whereHas('imprestRequest', function ($q) use ($companyId) {
+            'total_amount_disbursed' => ImprestDisbursement::whereHas('imprestRequest', function ($q) use ($companyId, $ownOnly, $user) {
                 $q->forCompany($companyId);
+                if ($ownOnly) {
+                    $q->where(function ($sq) use ($user) {
+                        $sq->where('employee_id', $user->id)
+                           ->orWhere('created_by', $user->id);
+                    });
+                }
             })->sum('amount_issued'),
         ];
 
@@ -99,8 +115,18 @@ class ImprestController extends Controller
      */
     private function getRequestsDataTable(Request $request)
     {
+        $user = Auth::user();
+
         $query = ImprestRequest::with(['employee', 'department', 'creator', 'project', 'projectActivity'])
-            ->forCompany(Auth::user()->company_id);
+            ->forCompany($user->company_id);
+
+        // Restrict to own imprests if user lacks 'view all imprests'
+        if ($this->shouldRestrictToOwnImprests($user)) {
+            $query->where(function ($q) use ($user) {
+                $q->where('employee_id', $user->id)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
 
         // Apply filters
         if ($request->has('status') && $request->status != '') {
@@ -490,6 +516,13 @@ class ImprestController extends Controller
         $user = Auth::user();
         if ($imprestRequest->company_id !== $user->company_id && !$user->hasRole('Super Admin')) {
             abort(403, 'Unauthorized');
+        }
+
+        // Restrict to own imprests if user lacks 'view all imprests'
+        if ($this->shouldRestrictToOwnImprests($user)) {
+            if ($imprestRequest->employee_id !== $user->id && $imprestRequest->created_by !== $user->id) {
+                abort(403, 'You can only view your own imprest requests.');
+            }
         }
 
         // Check user permissions based on multi-level approval settings
@@ -911,6 +944,12 @@ class ImprestController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        if ($this->shouldRestrictToOwnImprests($user)) {
+            if ($imprestRequest->employee_id !== $user->id && $imprestRequest->created_by !== $user->id) {
+                abort(403, 'You can only view your own imprest requests.');
+            }
+        }
+
         // Get approval information
         $requiresApproval = $imprestRequest->requiresApproval();
         $isFullyApproved = $imprestRequest->isFullyApproved();
@@ -955,6 +994,12 @@ class ImprestController extends Controller
         $user = Auth::user();
         if ($imprestRequest->company_id !== $user->company_id && ! $user->hasRole('Super Admin')) {
             abort(403, 'Unauthorized');
+        }
+
+        if ($this->shouldRestrictToOwnImprests($user)) {
+            if ($imprestRequest->employee_id !== $user->id && $imprestRequest->created_by !== $user->id) {
+                abort(403, 'You can only view your own imprest requests.');
+            }
         }
 
         $requiresApproval = $imprestRequest->requiresApproval();
@@ -1220,5 +1265,21 @@ class ImprestController extends Controller
                 'error' => 'Failed to save settings: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Check if the user should only see their own imprests.
+     */
+    private function shouldRestrictToOwnImprests($user): bool
+    {
+        if ($user->hasAnyRole(['super-admin', 'admin'])) {
+            return false;
+        }
+
+        if ($user->can('view all imprests')) {
+            return false;
+        }
+
+        return true;
     }
 }

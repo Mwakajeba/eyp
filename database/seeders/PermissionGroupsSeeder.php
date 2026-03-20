@@ -705,6 +705,8 @@ class PermissionGroupsSeeder extends Seeder
             ],
             'imprest' => [
                 'view imprest requests',
+                'view own imprests',
+                'view all imprests',
                 'create imprest request',
                 'edit imprest request',
                 'delete imprest request',

@@ -68,7 +68,7 @@ class MenuSeeder extends Seeder
                     'accounting.accruals-prepayments.export-excel'
                 ],
             ],
-            'Inventory' => [
+            'Inventory & Services' => [
                 'icon' => 'bx bx-package',
                 'visibleRoutes' => [
                     ['name' => 'Inventory Management', 'route' => 'inventory.index'],
@@ -76,14 +76,14 @@ class MenuSeeder extends Seeder
                 'hiddenRoutes' => ['inventory.items.index', 'inventory.items.create', 'inventory.items.edit', 'inventory.items.destroy', 'inventory.items.show', 'inventory.categories.index', 'inventory.categories.create', 'inventory.categories.edit', 'inventory.categories.destroy', 'inventory.movements.index', 'inventory.movements.create', 'inventory.movements.edit', 'inventory.movements.destroy'],
             ],
 
-            'Cash Deposits' => [
-                'icon' => 'bx bx-outline',
-                'visibleRoutes' => [
-                    ['name' => 'Cash Deposit Accounts', 'route' => 'cash_collateral_types.index'],
-                    ['name' => 'Cash Deposits', 'route' => 'cash_collaterals.index'],
-                ],
-                'hiddenRoutes' => ['cash_collateral_types.create', 'cash_collateral_types.edit', 'cash_collateral_types.destroy', 'cash_collateral_types.show', 'cash_collaterals.create', 'cash_collaterals.edit', 'cash_collaterals.destroy', 'cash_collaterals.show'],
-            ],
+            // 'Cash Deposits' => [
+            //     'icon' => 'bx bx-outline',
+            //     'visibleRoutes' => [
+            //         ['name' => 'Cash Deposit Accounts', 'route' => 'cash_collateral_types.index'],
+            //         ['name' => 'Cash Deposits', 'route' => 'cash_collaterals.index'],
+            //     ],
+            //     'hiddenRoutes' => ['cash_collateral_types.create', 'cash_collateral_types.edit', 'cash_collateral_types.destroy', 'cash_collateral_types.show', 'cash_collaterals.create', 'cash_collaterals.edit', 'cash_collaterals.destroy', 'cash_collaterals.show'],
+            // ],
 
             'Imprests' => [
                 'icon' => 'bx bx-money',
@@ -114,50 +114,50 @@ class MenuSeeder extends Seeder
                 ],
             ],
 
-            'Store Requisitions' => [
-                'icon' => 'bx bx-package',
-                'visibleRoutes' => [
-                    ['name' => 'Store Requisition Management', 'route' => 'store-requisitions.index'],
-                ],
-                'hiddenRoutes' => [
-                    'store-requisitions.create',
-                    'store-requisitions.edit',
-                    'store-requisitions.destroy',
-                    'store-requisitions.show',
-                    'store-requisitions.store',
-                    'store-requisitions.update',
-                    'store-requisitions.approve',
-                    'store-requisitions.approval-settings.index',
-                    'store-requisitions.approval-settings.store',
-                    'store-requisitions.approval-settings.reset',
-                    'store-requisitions.approval-settings.test-configuration',
-                    'store-requisitions.data',
-                    'store-requisitions.export',
-                    'store-requisitions.print',
-                    'store-issues.index',
-                    'store-issues.create',
-                    'store-issues.edit',
-                    'store-issues.destroy',
-                    'store-issues.show',
-                    'store-issues.store',
-                    'store-issues.update',
-                    'store-issues.data',
-                    'store-issues.export',
-                    'store-issues.print',
-                    'store-returns.index',
-                    'store-returns.create',
-                    'store-returns.edit',
-                    'store-returns.destroy',
-                    'store-returns.show',
-                    'store-returns.store',
-                    'store-returns.update',
-                    'store-returns.data',
-                    'store-returns.export',
-                    'store-returns.print',
-                ],
-            ],
+            // 'Store Requisitions' => [
+            //     'icon' => 'bx bx-package',
+            //     'visibleRoutes' => [
+            //         ['name' => 'Store Requisition Management', 'route' => 'store-requisitions.index'],
+            //     ],
+            //     'hiddenRoutes' => [
+            //         'store-requisitions.create',
+            //         'store-requisitions.edit',
+            //         'store-requisitions.destroy',
+            //         'store-requisitions.show',
+            //         'store-requisitions.store',
+            //         'store-requisitions.update',
+            //         'store-requisitions.approve',
+            //         'store-requisitions.approval-settings.index',
+            //         'store-requisitions.approval-settings.store',
+            //         'store-requisitions.approval-settings.reset',
+            //         'store-requisitions.approval-settings.test-configuration',
+            //         'store-requisitions.data',
+            //         'store-requisitions.export',
+            //         'store-requisitions.print',
+            //         'store-issues.index',
+            //         'store-issues.create',
+            //         'store-issues.edit',
+            //         'store-issues.destroy',
+            //         'store-issues.show',
+            //         'store-issues.store',
+            //         'store-issues.update',
+            //         'store-issues.data',
+            //         'store-issues.export',
+            //         'store-issues.print',
+            //         'store-returns.index',
+            //         'store-returns.create',
+            //         'store-returns.edit',
+            //         'store-returns.destroy',
+            //         'store-returns.show',
+            //         'store-returns.store',
+            //         'store-returns.update',
+            //         'store-returns.data',
+            //         'store-returns.export',
+            //         'store-returns.print',
+            //     ],
+            // ],
 
-            'Sales' => [
+            'Sales & Grants' => [
                 'icon' => 'bx bx-shopping-bag',
                 'visibleRoutes' => [
                     ['name' => 'Sales Management', 'route' => 'sales.index'],
