@@ -230,9 +230,12 @@ class ImprestActionController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01|max:' . $imprestRequest->amount_requested,
             'bank_account_id' => 'required|exists:bank_accounts,id',
+            'retirement_days' => 'required|integer|min:1|max:3650',
             'description' => 'nullable|string|max:1000',
             'reference' => 'nullable|string|max:255',
         ]);
+
+        $retirementEndDate = now()->addDays((int) $request->retirement_days)->toDateString();
 
         // Use the imprest receivables account from settings
         $imprestAccountId = $imprestSettings->imprest_receivables_account;
@@ -304,6 +307,7 @@ class ImprestActionController extends Controller
             $imprestRequest->update([
                 'status' => 'disbursed',
                 'disbursed_at' => now(),
+                'retirement_end_date' => $retirementEndDate,
                 'disbursed_by' => $user->id,
                 'disbursed_amount' => $request->amount,
                 'payment_id' => $payment->id, // Store reference to payment
@@ -344,9 +348,14 @@ class ImprestActionController extends Controller
     {
         $request->validate([
             'bank_account_id' => 'required|exists:bank_accounts,id',
+            'retirement_days' => 'nullable|integer|min:1|max:3650',
             'description' => 'nullable|string|max:1000',
             'reference' => 'nullable|string|max:255',
         ]);
+
+        $retirementEndDate = $request->filled('retirement_days')
+            ? now()->addDays((int) $request->retirement_days)->toDateString()
+            : null;
 
         DB::beginTransaction();
         
@@ -420,6 +429,7 @@ class ImprestActionController extends Controller
             $imprestRequest->update([
                 'status' => 'disbursed',
                 'disbursed_at' => now(),
+                'retirement_end_date' => $retirementEndDate,
                 'disbursed_by' => $user->id,
                 'disbursed_amount' => $totalAmount,
                 'payment_id' => $payment->id,

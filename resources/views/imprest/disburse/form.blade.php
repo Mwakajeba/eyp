@@ -206,6 +206,37 @@
                                 </div>
                             @endif
 
+                            <!-- Retirement Days -->
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label for="retirement_days" class="form-label fw-bold mb-2">
+                                        <i class="bx bx-calendar text-warning me-2"></i>Retirement Days
+                                        @if(isset($imprestSettings) && $imprestSettings->retirement_enabled)
+                                            <span class="text-danger">*</span>
+                                        @endif
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light border-0">
+                                            <i class="bx bx-time-five"></i>
+                                        </span>
+                                        <input type="number"
+                                               class="form-control border-start-0 @error('retirement_days') is-invalid @enderror"
+                                               id="retirement_days"
+                                               name="retirement_days"
+                                               min="1"
+                                               step="1"
+                                               value="{{ old('retirement_days', (isset($imprestSettings) && $imprestSettings->retirement_enabled) ? ($imprestSettings->retirement_period_days ?? 30) : '') }}"
+                                               placeholder="Enter number of days"
+                                               @if(isset($imprestSettings) && $imprestSettings->retirement_enabled) required @endif>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="bx bx-info-circle me-1"></i>
+                                        Retirement end date will be calculated from disbursement date plus these days.
+                                    </small>
+                                    @error('retirement_days')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+
                             <!-- Reference Number -->
                             <div class="mb-4">
                                 <div class="form-group">
