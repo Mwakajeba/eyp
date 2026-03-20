@@ -8,7 +8,6 @@ use App\Models\ChartAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ImprestActionController extends Controller
 {
@@ -235,7 +234,8 @@ class ImprestActionController extends Controller
             'reference' => 'nullable|string|max:255',
         ]);
 
-        $retirementEndDate = now()->addDays((int) $request->retirement_days)->toDateString();
+        $disbursementDate = now();
+        $retirementEndDate = $disbursementDate->copy()->addDays((int) $request->retirement_days)->toDateString();
 
         // Use the imprest receivables account from settings
         $imprestAccountId = $imprestSettings->imprest_receivables_account;
@@ -253,7 +253,7 @@ class ImprestActionController extends Controller
                 'reference_type' => 'imprest_request',
                 'reference_number' => $imprestRequest->request_number,
                 'amount' => $request->amount,
-                'date' => now(),
+                'date' => $disbursementDate,
                 'description' => $request->description ?: "Imprest disbursement for: {$imprestRequest->purpose}",
                 'bank_account_id' => $request->bank_account_id,
                 'payee_type' => 'other',
@@ -263,7 +263,7 @@ class ImprestActionController extends Controller
                 'user_id' => $user->id,
                 'approved' => true, // Always auto-approve - imprest already approved
                 'approved_by' => $user->id,
-                'approved_at' => now(),
+                'approved_at' => $disbursementDate,
             ]);
 
             // Create payment item for the imprest receivable account (auto-selected from settings)
@@ -284,7 +284,7 @@ class ImprestActionController extends Controller
                 'nature' => 'credit',
                 'transaction_id' => $payment->id,
                 'transaction_type' => 'payment',
-                'date' => now()->toDateString(),
+                'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest disbursement: {$imprestRequest->request_number}",
                 'branch_id' => $imprestRequest->branch_id,
                 'user_id' => $user->id,
@@ -297,7 +297,7 @@ class ImprestActionController extends Controller
                 'nature' => 'debit',
                 'transaction_id' => $payment->id,
                 'transaction_type' => 'payment',
-                'date' => now()->toDateString(),
+                'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest advance to {$imprestRequest->employee->name}",
                 'branch_id' => $imprestRequest->branch_id,
                 'user_id' => $user->id,
@@ -306,7 +306,7 @@ class ImprestActionController extends Controller
             // Update imprest request status
             $imprestRequest->update([
                 'status' => 'disbursed',
-                'disbursed_at' => now(),
+                'disbursed_at' => $disbursementDate,
                 'retirement_end_date' => $retirementEndDate,
                 'disbursed_by' => $user->id,
                 'disbursed_amount' => $request->amount,
@@ -353,8 +353,10 @@ class ImprestActionController extends Controller
             'reference' => 'nullable|string|max:255',
         ]);
 
+        $disbursementDate = now();
+
         $retirementEndDate = $request->filled('retirement_days')
-            ? now()->addDays((int) $request->retirement_days)->toDateString()
+            ? $disbursementDate->copy()->addDays((int) $request->retirement_days)->toDateString()
             : null;
 
         DB::beginTransaction();
@@ -371,7 +373,7 @@ class ImprestActionController extends Controller
                 'reference_type' => 'imprest_request',
                 'reference_number' => $imprestRequest->request_number,
                 'amount' => $totalAmount,
-                'date' => now(),
+                'date' => $disbursementDate,
                 'description' => $request->description ?: "Imprest expense payment for: {$imprestRequest->purpose}",
                 'bank_account_id' => $request->bank_account_id,
                 'payee_type' => 'other',
@@ -381,7 +383,7 @@ class ImprestActionController extends Controller
                 'user_id' => $user->id,
                 'approved' => true,
                 'approved_by' => $user->id,
-                'approved_at' => now(),
+                'approved_at' => $disbursementDate,
             ]);
 
             // Create payment items for each expense account
@@ -404,7 +406,7 @@ class ImprestActionController extends Controller
                 'nature' => 'credit',
                 'transaction_id' => $payment->id,
                 'transaction_type' => 'payment',
-                'date' => now()->toDateString(),
+                'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest expense payment: {$imprestRequest->request_number}",
                 'branch_id' => $branchId,
                 'user_id' => $user->id,
@@ -418,7 +420,7 @@ class ImprestActionController extends Controller
                     'nature' => 'debit',
                     'transaction_id' => $payment->id,
                     'transaction_type' => 'payment',
-                    'date' => now()->toDateString(),
+                    'date' => $disbursementDate->toDateString(),
                     'description' => "Imprest expense: {$item->chartAccount->account_name}",
                     'branch_id' => $branchId,
                     'user_id' => $user->id,
@@ -428,7 +430,7 @@ class ImprestActionController extends Controller
             // Update imprest request status
             $imprestRequest->update([
                 'status' => 'disbursed',
-                'disbursed_at' => now(),
+                'disbursed_at' => $disbursementDate,
                 'retirement_end_date' => $retirementEndDate,
                 'disbursed_by' => $user->id,
                 'disbursed_amount' => $totalAmount,

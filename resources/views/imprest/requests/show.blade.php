@@ -91,6 +91,12 @@
                                 <label class="form-label fw-bold">Created Date</label>
                                 <div class="form-control-plaintext">{{ $imprestRequest->created_at->format('M d, Y H:i') }}</div>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Retirement End Date</label>
+                                <div class="form-control-plaintext">
+                                    {{ $imprestRequest->retirement_end_date ? $imprestRequest->retirement_end_date->format('M d, Y') : 'N/A' }}
+                                </div>
+                            </div>
                             <div class="col-12 mb-3">
                                 <label class="form-label fw-bold">Purpose</label>
                                 <div class="form-control-plaintext">{{ $imprestRequest->purpose }}</div>
@@ -339,6 +345,12 @@
                             <div class="col-12 mb-2">
                                 <small class="text-muted">Disbursed Amount</small>
                                 <div class="fw-bold text-primary">TZS {{ number_format($imprestRequest->disbursed_amount, 2) }}</div>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <small class="text-muted">Retirement End Date</small>
+                                <div class="fw-bold text-info">
+                                    {{ $imprestRequest->retirement_end_date ? $imprestRequest->retirement_end_date->format('M d, Y') : 'N/A' }}
+                                </div>
                             </div>
                             @if($imprestRequest->payment)
                             <div class="col-12 mb-2">
