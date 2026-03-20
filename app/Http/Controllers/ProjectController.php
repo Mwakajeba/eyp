@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChartAccount;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Project;
+use App\Models\ProjectActivity;
+use App\Models\ProjectSubActivity;
 use App\Models\Receipt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -12,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class ProjectController extends Controller
 {
@@ -28,7 +32,68 @@ class ProjectController extends Controller
             ->orderBy('project_code')
             ->get(['id', 'project_code', 'name', 'type']);
 
-        return view('projects.index', compact('projects'));
+        $activityCount = ProjectActivity::forCompany($companyId)->count();
+
+        return view('projects.index', compact('projects', 'activityCount'));
+    }
+
+    public function activityIndex(Request $request)
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        if ($request->ajax()) {
+            $projectActivities = ProjectActivity::query()
+                ->where('project_activities.company_id', $companyId)
+                ->with([
+                    'project:id,project_code,name',
+                    'creator:id,name',
+                    'subActivities:id,project_activity_id,amount',
+                ])
+                ->select('project_activities.*');
+
+            return DataTables::of($projectActivities)
+                ->addIndexColumn()
+                ->addColumn('project_display', function ($activity) {
+                    $projectCode = e($activity->project->project_code ?? '-');
+                    $projectName = e($activity->project->name ?? '-');
+
+                    return '<div class="fw-semibold">' . $projectCode . '</div><small class="text-muted">' . $projectName . '</small>';
+                })
+                ->addColumn('budget_amount_formatted', fn ($activity) => $activity->budget_amount !== null ? number_format((float) $activity->budget_amount, 2) : '—')
+                ->addColumn('sub_activities_total', fn ($activity) => number_format((float) $activity->subActivities->sum('amount'), 2))
+                ->addColumn('created_by_name', fn ($activity) => e($activity->creator->name ?? 'System'))
+                ->addColumn('created_at_formatted', fn ($activity) => optional($activity->created_at)->format('d M Y'))
+                ->addColumn('actions', function ($activity) {
+                    $editUrl = route('projects.activities.edit', $activity->id);
+                    $deleteUrl = route('projects.activities.destroy', $activity->id);
+                    $subActivitiesUrl = route('projects.activities.sub-activities.index', $activity->id);
+
+                    return '<div class="d-flex gap-1">'
+                        . '<a href="' . $subActivitiesUrl . '" class="btn btn-sm btn-success" title="Manage Sub Activities"><i class="bx bx-plus"></i></a>'
+                        . '<a href="' . $editUrl . '" class="btn btn-sm btn-warning"><i class="bx bx-edit"></i></a>'
+                        . '<form method="POST" action="' . $deleteUrl . '" onsubmit="return confirm(\'Delete this project activity?\');">'
+                        . csrf_field()
+                        . method_field('DELETE')
+                        . '<button type="submit" class="btn btn-sm btn-danger"><i class="bx bx-trash"></i></button>'
+                        . '</form>'
+                        . '</div>';
+                })
+                ->rawColumns(['project_display', 'actions'])
+                ->make(true);
+        }
+
+        return view('projects.activities.index');
+    }
+
+    public function activityCreate()
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        $projects = Project::forCompany($companyId)
+            ->orderBy('project_code')
+            ->get(['id', 'project_code', 'name', 'type']);
+
+        return view('projects.activities.create', compact('projects'));
     }
 
     public function projectReceiptsExportPdf(Request $request)
@@ -277,6 +342,183 @@ class ProjectController extends Controller
         return redirect()->route('projects.project.index')->with('success', 'Project deleted successfully.');
     }
 
+    public function activityStore(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $companyId = (int) $user->company_id;
+
+        $request->merge([
+            'budget_amount' => $request->filled('budget_amount')
+                ? $this->normalizeDecimal($request->input('budget_amount'))
+                : null,
+        ]);
+
+        $validated = $request->validate([
+            'project_id' => [
+                'required',
+                'integer',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
+            ],
+            'activity_code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('project_activities')->where(fn ($query) => $query
+                    ->where('company_id', $companyId)
+                    ->where('project_id', $request->input('project_id'))),
+            ],
+            'description' => ['required', 'string', 'max:5000'],
+            'budget_amount' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        ProjectActivity::create([
+            'company_id' => $companyId,
+            'branch_id' => session('branch_id') ?? $user->branch_id,
+            'project_id' => $validated['project_id'],
+            'activity_code' => strtoupper(trim($validated['activity_code'])),
+            'description' => $validated['description'],
+            'budget_amount' => $validated['budget_amount'],
+            'created_by' => $user->id,
+        ]);
+
+        return redirect()->route('projects.activities.index')->with('success', 'Project activity created successfully.');
+    }
+
+    public function activityEdit(ProjectActivity $activity)
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        abort_if($activity->company_id !== $companyId, 403, 'Unauthorized action.');
+
+        $projects = Project::forCompany($companyId)
+            ->orderBy('project_code')
+            ->get(['id', 'project_code', 'name', 'type']);
+
+        return view('projects.activities.edit', compact('activity', 'projects'));
+    }
+
+    public function activityUpdate(Request $request, ProjectActivity $activity): RedirectResponse
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        abort_if($activity->company_id !== $companyId, 403, 'Unauthorized action.');
+
+        $request->merge([
+            'budget_amount' => $request->filled('budget_amount')
+                ? $this->normalizeDecimal($request->input('budget_amount'))
+                : null,
+        ]);
+
+        $validated = $request->validate([
+            'project_id' => [
+                'required',
+                'integer',
+                Rule::exists('projects', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
+            ],
+            'activity_code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('project_activities')->where(fn ($query) => $query
+                    ->where('company_id', $companyId)
+                    ->where('project_id', $request->input('project_id')))->ignore($activity->id),
+            ],
+            'description' => ['required', 'string', 'max:5000'],
+            'budget_amount' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $activity->update([
+            'project_id' => $validated['project_id'],
+            'activity_code' => strtoupper(trim($validated['activity_code'])),
+            'description' => $validated['description'],
+            'budget_amount' => $validated['budget_amount'],
+        ]);
+
+        return redirect()->route('projects.activities.index')->with('success', 'Project activity updated successfully.');
+    }
+
+    public function activityDestroy(ProjectActivity $activity): RedirectResponse
+    {
+        $this->authorizeProjectActivity($activity);
+
+        $activity->delete();
+
+        return redirect()->route('projects.activities.index')->with('success', 'Project activity deleted successfully.');
+    }
+
+    public function subActivityIndex(ProjectActivity $activity)
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        $this->authorizeProjectActivity($activity);
+
+        $activity->load(['project:id,project_code,name']);
+
+        $chartAccounts = $this->companyChartAccounts($companyId)->get(['chart_accounts.id', 'chart_accounts.account_code', 'chart_accounts.account_name']);
+
+        $subActivities = $activity->subActivities()
+            ->with(['chartAccount:id,account_code,account_name', 'creator:id,name'])
+            ->latest()
+            ->get();
+
+        $totalAmount = (float) $subActivities->sum('amount');
+
+        return view('projects.activities.sub-activities.index', compact('activity', 'chartAccounts', 'subActivities', 'totalAmount'));
+    }
+
+    public function subActivityStore(Request $request, ProjectActivity $activity): RedirectResponse
+    {
+        $user = Auth::user();
+        $companyId = (int) $user->company_id;
+
+        $this->authorizeProjectActivity($activity);
+
+        $validated = $this->validateSubActivityRequest($request, $companyId);
+
+        $activity->subActivities()->create([
+            'company_id' => $companyId,
+            'branch_id' => session('branch_id') ?? $user->branch_id,
+            'sub_activity_name' => $validated['sub_activity_name'],
+            'chart_account_id' => $validated['chart_account_id'],
+            'amount' => $validated['amount'],
+            'created_by' => $user->id,
+        ]);
+
+        return redirect()
+            ->route('projects.activities.sub-activities.index', $activity->id)
+            ->with('success', 'Sub activity created successfully.');
+    }
+
+    public function subActivityUpdate(Request $request, ProjectActivity $activity, ProjectSubActivity $subActivity): RedirectResponse
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        $this->authorizeProjectSubActivity($activity, $subActivity);
+
+        $validated = $this->validateSubActivityRequest($request, $companyId);
+
+        $subActivity->update([
+            'sub_activity_name' => $validated['sub_activity_name'],
+            'chart_account_id' => $validated['chart_account_id'],
+            'amount' => $validated['amount'],
+        ]);
+
+        return redirect()
+            ->route('projects.activities.sub-activities.index', $activity->id)
+            ->with('success', 'Sub activity updated successfully.');
+    }
+
+    public function subActivityDestroy(ProjectActivity $activity, ProjectSubActivity $subActivity): RedirectResponse
+    {
+        $this->authorizeProjectSubActivity($activity, $subActivity);
+
+        $subActivity->delete();
+
+        return redirect()
+            ->route('projects.activities.sub-activities.index', $activity->id)
+            ->with('success', 'Sub activity deleted successfully.');
+    }
+
     public function assignDonor(Request $request): RedirectResponse
     {
         $user = Auth::user();
@@ -320,6 +562,66 @@ class ProjectController extends Controller
         $project = Project::forCompany($companyId)->findOrFail((int) $validated['project_id']);
 
         return [$project, $validated['date_from'], $validated['date_to']];
+    }
+
+    private function normalizeDecimal($value): float
+    {
+        $normalized = preg_replace('/[^0-9.]/', '', (string) $value);
+
+        return $normalized === '' ? 0.0 : (float) $normalized;
+    }
+
+    private function authorizeProjectActivity(ProjectActivity $activity): void
+    {
+        $companyId = (int) Auth::user()->company_id;
+
+        abort_if($activity->company_id !== $companyId, 403, 'Unauthorized action.');
+    }
+
+    private function authorizeProjectSubActivity(ProjectActivity $activity, ProjectSubActivity $subActivity): void
+    {
+        $this->authorizeProjectActivity($activity);
+
+        abort_if(
+            $subActivity->company_id !== (int) Auth::user()->company_id || $subActivity->project_activity_id !== $activity->id,
+            403,
+            'Unauthorized action.'
+        );
+    }
+
+    private function validateSubActivityRequest(Request $request, int $companyId): array
+    {
+        $request->merge([
+            'amount' => $this->normalizeDecimal($request->input('amount')),
+        ]);
+
+        return $request->validate([
+            'sub_activity_name' => ['required', 'string', 'max:255'],
+            'chart_account_id' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) use ($companyId) {
+                    $exists = $this->companyChartAccounts($companyId)
+                        ->where('chart_accounts.id', $value)
+                        ->exists();
+
+                    if (! $exists) {
+                        $fail('The selected chart account is invalid.');
+                    }
+                },
+            ],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'edit_sub_activity_id' => ['nullable', 'integer'],
+        ]);
+    }
+
+    private function companyChartAccounts(int $companyId)
+    {
+        return ChartAccount::query()
+            ->whereHas('accountClassGroup', function ($query) use ($companyId) {
+                $query->where('company_id', $companyId);
+            })
+            ->orderBy('chart_accounts.account_code');
     }
 
     private function getProjectReceipts(int $projectId, string $dateFrom, string $dateTo)
