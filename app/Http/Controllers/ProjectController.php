@@ -214,7 +214,13 @@ class ProjectController extends Controller
         $companyId = (int) Auth::user()->company_id;
 
         $projects = Project::forCompany($companyId)
-            ->with(['donors'])
+            ->with([
+                'donors',
+                'activities' => function ($query) {
+                    $query->with(['subActivities:id,project_activity_id,sub_activity_name,amount'])
+                        ->orderBy('activity_code');
+                },
+            ])
             ->latest()
             ->get();
 
