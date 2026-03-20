@@ -465,6 +465,8 @@ class ImprestController extends Controller
         $imprestRequest = ImprestRequest::with([
             'employee',
             'department',
+            'project',
+            'projectActivity',
             'creator',
             'checker',
             'approver',
@@ -922,6 +924,63 @@ class ImprestController extends Controller
             'completedApprovals',
             'requiredApprovalLevels'
         ));
+    }
+
+    /**
+     * Export imprest request as PDF.
+     */
+    public function exportPdf($id)
+    {
+        @set_time_limit(120);
+
+        $decodedId = Hashids::decode($id)[0] ?? $id;
+        $imprestRequest = ImprestRequest::with([
+            'employee',
+            'department',
+            'project',
+            'projectActivity',
+            'creator',
+            'checker',
+            'approver',
+            'rejecter',
+            'disburser',
+            'company',
+            'branch',
+            'imprestItems.chartAccount',
+            'approvals.approver',
+            'payment.bankAccount',
+            'disbursement.bankAccount'
+        ])->findOrFail($decodedId);
+
+        $user = Auth::user();
+        if ($imprestRequest->company_id !== $user->company_id && ! $user->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $requiresApproval = $imprestRequest->requiresApproval();
+        $isFullyApproved = $imprestRequest->isFullyApproved();
+        $completedApprovals = $imprestRequest->getCompletedApprovals();
+
+        try {
+            $pdf = \PDF::loadView('imprest.requests.pdf', compact(
+                'imprestRequest',
+                'requiresApproval',
+                'isFullyApproved',
+                'completedApprovals'
+            ));
+            $pdf->setPaper('A4', 'portrait');
+
+            $requestNo = preg_replace('/[^A-Za-z0-9_-]/', '_', (string) $imprestRequest->request_number);
+            return $pdf->download('Imprest_Request_' . $requestNo . '.pdf');
+        } catch (\Exception $e) {
+            \Log::error('Imprest PDF export failed: ' . $e->getMessage(), [
+                'imprest_request_id' => $imprestRequest->id,
+                'user_id' => $user->id,
+            ]);
+
+            return redirect()->route('imprest.requests.show', $id)
+                ->withErrors(['error' => 'Failed to generate PDF: ' . $e->getMessage()]);
+        }
     }
 
     /**
