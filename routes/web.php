@@ -2628,6 +2628,7 @@ Route::prefix('imprest')->name('imprest.')->middleware('auth')->group(function (
         Route::get('/{id}/edit', [App\Http\Controllers\ImprestController::class, 'edit'])->name('edit');
         Route::put('/{id}', [App\Http\Controllers\ImprestController::class, 'update'])->name('update');
         Route::delete('/{id}', [App\Http\Controllers\ImprestController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/export-pdf', [App\Http\Controllers\ImprestController::class, 'exportPdf'])->name('export-pdf');
         Route::get('/{id}/print', [App\Http\Controllers\ImprestController::class, 'print'])->name('print');
     });
 

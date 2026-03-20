@@ -58,6 +58,26 @@
                                 <div class="form-control-plaintext">{{ $imprestRequest->department->name ?? 'N/A' }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Project</label>
+                                <div class="form-control-plaintext">
+                                    @if($imprestRequest->project)
+                                        {{ $imprestRequest->project->project_code ? $imprestRequest->project->project_code . ' - ' : '' }}{{ $imprestRequest->project->name }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Activity Description</label>
+                                <div class="form-control-plaintext">
+                                    @if($imprestRequest->projectActivity)
+                                        {{ $imprestRequest->projectActivity->activity_code ? $imprestRequest->projectActivity->activity_code . ' - ' : '' }}{{ $imprestRequest->projectActivity->description }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Date Required</label>
                                 <div class="form-control-plaintext">{{ $imprestRequest->date_required ? $imprestRequest->date_required->format('M d, Y') : 'N/A' }}</div>
                             </div>
@@ -231,6 +251,11 @@
                             @endif
 
                             <!-- Print PDF Button -->
+                            <a href="{{ route('imprest.requests.export-pdf', $imprestRequest->id) }}" class="btn btn-info" target="_blank">
+                                <i class="bx bx-download me-1"></i> Export PDF
+                            </a>
+
+                            <!-- Print Preview Button -->
                             <a href="{{ route('imprest.requests.print', $imprestRequest->id) }}" class="btn btn-info" target="_blank">
                                 <i class="bx bx-printer me-1"></i> Print PDF
                             </a>
