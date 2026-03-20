@@ -68,6 +68,15 @@
                                 <td>{{ optional($project->created_at)->format('d M Y') }}</td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        <button type="button"
+                                                class="btn btn-sm btn-info text-nowrap"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#project-activities-{{ $project->id }}"
+                                                aria-expanded="false"
+                                                {{ $project->activities->isEmpty() ? 'disabled' : '' }}>
+                                            <i class="bx bx-chevron-right me-1 transition-icon"></i>
+                                            View Activities
+                                        </button>
                                         <a href="{{ route('projects.project.edit', $project->id) }}" class="btn btn-sm btn-warning">
                                             <i class="bx bx-edit"></i>
                                         </a>
@@ -78,6 +87,52 @@
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="project-activities-{{ $project->id }}" class="collapse bg-light" data-bs-parent="#projects-table tbody">
+                                <td colspan="9">
+                                    <div class="p-2">
+                                        @if($project->activities->isEmpty())
+                                            <span class="text-muted">No activities found for this project.</span>
+                                        @else
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 180px;">Activity Code</th>
+                                                            <th>Description</th>
+                                                            <th style="width: 160px;" class="text-end">Sub Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($project->activities as $activity)
+                                                            <tr class="table-secondary">
+                                                                <td class="fw-semibold">{{ $activity->activity_code }}</td>
+                                                                <td>{{ $activity->description }}</td>
+                                                                <td class="text-end">{{ number_format((float) $activity->subActivities->sum('amount'), 2) }}</td>
+                                                            </tr>
+                                                            @forelse($activity->subActivities as $subActivity)
+                                                                <tr>
+                                                                    <td></td>
+                                                                    <td>
+                                                                        <span class="text-muted me-2">&#8627;</span>
+                                                                        {{ $subActivity->sub_activity_name }}
+                                                                    </td>
+                                                                    <td class="text-end">{{ number_format((float) $subActivity->amount, 2) }}</td>
+                                                                </tr>
+                                                            @empty
+                                                                <tr>
+                                                                    <td></td>
+                                                                    <td class="text-muted">No sub activities</td>
+                                                                    <td class="text-end">0.00</td>
+                                                                </tr>
+                                                            @endforelse
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -94,3 +149,15 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .transition-icon {
+        transition: transform 0.2s ease;
+    }
+
+    [aria-expanded="true"] .transition-icon {
+        transform: rotate(90deg);
+    }
+</style>
+@endpush
