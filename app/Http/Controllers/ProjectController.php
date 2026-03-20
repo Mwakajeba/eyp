@@ -383,7 +383,7 @@ class ProjectController extends Controller
             'project_id' => $validated['project_id'],
             'activity_code' => strtoupper(trim($validated['activity_code'])),
             'description' => $validated['description'],
-            'budget_amount' => $validated['budget_amount'],
+            'budget_amount' => $validated['budget_amount'] ?? 0,
             'created_by' => $user->id,
         ]);
 
@@ -437,7 +437,7 @@ class ProjectController extends Controller
             'project_id' => $validated['project_id'],
             'activity_code' => strtoupper(trim($validated['activity_code'])),
             'description' => $validated['description'],
-            'budget_amount' => $validated['budget_amount'],
+            'budget_amount' => $validated['budget_amount'] ?? 0,
         ]);
 
         return redirect()->route('projects.activities.index')->with('success', 'Project activity updated successfully.');
