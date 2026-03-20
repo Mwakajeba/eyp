@@ -285,7 +285,7 @@
             <strong>PAYMENT METHOD :</strong>
         </div>
         <div class="payment-details">
-            <strong>BANK TRANSFER, CHEQUE OR CASH AT OFFICE</strong>
+            <strong><center>BANK TRANSFER, CHEQUE OR CASH AT OFFICE</center></strong>
         </div>
 
 
