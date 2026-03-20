@@ -185,6 +185,16 @@ class ImprestRequest extends Model
 
     public function canBeDisbursed(): bool
     {
+        // Multi-level flow: allow disbursement once all required levels are approved.
+        if ($this->requiresApproval()) {
+            return $this->isFullyApproved()
+                && !$this->hasRejectedApprovals()
+                && !$this->payment_id
+                && !$this->disbursement
+                && !in_array($this->status, ['disbursed', 'liquidated', 'closed', 'rejected'], true);
+        }
+
+        // Legacy flow: finance approval sets status=approved before disbursement.
         return $this->status === 'approved' && !$this->payment_id && !$this->disbursement;
     }
 
