@@ -961,12 +961,26 @@ class ImprestController extends Controller
         $isFullyApproved = $imprestRequest->isFullyApproved();
         $completedApprovals = $imprestRequest->getCompletedApprovals();
 
+        // Prepare logo as base64 to keep PDF rendering reliable.
+        $logoBase64 = null;
+        if ($imprestRequest->company && $imprestRequest->company->logo) {
+            $logoPath = public_path('storage/' . ltrim($imprestRequest->company->logo, '/'));
+            if (file_exists($logoPath)) {
+                $imageData = @file_get_contents($logoPath);
+                $imageInfo = @getimagesize($logoPath);
+                if ($imageData !== false && $imageInfo !== false && isset($imageInfo['mime'])) {
+                    $logoBase64 = 'data:' . $imageInfo['mime'] . ';base64,' . base64_encode($imageData);
+                }
+            }
+        }
+
         try {
             $pdf = \PDF::loadView('imprest.requests.pdf', compact(
                 'imprestRequest',
                 'requiresApproval',
                 'isFullyApproved',
-                'completedApprovals'
+                'completedApprovals',
+                'logoBase64'
             ));
             $pdf->setPaper('A4', 'portrait');
 
