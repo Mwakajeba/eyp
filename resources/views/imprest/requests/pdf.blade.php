@@ -317,6 +317,10 @@
                                     @endif
                                 </td>
                             </tr>
+                            <tr>
+                                <td>Retirement End Date:</td>
+                                <td>{{ $imprestRequest->retirement_end_date ? $imprestRequest->retirement_end_date->format('d M Y') : 'N/A' }}</td>
+                            </tr>
                         </table>
                     </div>
                 </td>

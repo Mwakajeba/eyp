@@ -42,6 +42,7 @@ class ImprestRequest extends Model
         'payment_id',
         'disbursed_by',
         'disbursed_at',
+        'retirement_end_date',
         'disbursed_amount',
     ];
 
@@ -53,6 +54,7 @@ class ImprestRequest extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'disbursed_at' => 'datetime',
+        'retirement_end_date' => 'date',
     ];
 
     // Relationships
