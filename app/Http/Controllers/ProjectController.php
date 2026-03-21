@@ -102,8 +102,9 @@ class ProjectController extends Controller
     {
         [$project, $dateFrom, $dateTo] = $this->validateProjectReportFilters($request);
         $receipts = $this->getProjectReceipts($project->id, $dateFrom, $dateTo);
+        [$company, $logoBase64] = $this->getCompanyAndLogo();
 
-        $pdf = Pdf::loadView('projects.reports.project-cashflow-pdf', [
+        $pdf = Pdf::loadView('projects.reports.project-report-pdf', [
             'title' => 'Project Receipts Report',
             'reportType' => 'Receipts',
             'project' => $project,
@@ -111,6 +112,8 @@ class ProjectController extends Controller
             'dateTo' => $dateTo,
             'rows' => $receipts,
             'totalAmount' => (float) $receipts->sum('amount'),
+            'company' => $company,
+            'logoBase64' => $logoBase64,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download(sprintf(
@@ -158,8 +161,9 @@ class ProjectController extends Controller
     {
         [$project, $dateFrom, $dateTo] = $this->validateProjectReportFilters($request);
         $payments = $this->getProjectPayments($project->id, $dateFrom, $dateTo);
+        [$company, $logoBase64] = $this->getCompanyAndLogo();
 
-        $pdf = Pdf::loadView('projects.reports.project-cashflow-pdf', [
+        $pdf = Pdf::loadView('projects.reports.project-report-pdf', [
             'title' => 'Project Payments Report',
             'reportType' => 'Payments',
             'project' => $project,
@@ -167,6 +171,8 @@ class ProjectController extends Controller
             'dateTo' => $dateTo,
             'rows' => $payments,
             'totalAmount' => (float) $payments->sum('amount'),
+            'company' => $company,
+            'logoBase64' => $logoBase64,
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download(sprintf(
@@ -662,6 +668,25 @@ class ProjectController extends Controller
             ->orderBy('date')
             ->orderBy('reference')
             ->get();
+    }
+
+    private function getCompanyAndLogo(): array
+    {
+        $company = Auth::user()->company;
+        $logoBase64 = null;
+
+        if ($company && $company->logo) {
+            $logoPath = public_path('storage/' . ltrim($company->logo, '/'));
+            if (file_exists($logoPath)) {
+                $imageData = @file_get_contents($logoPath);
+                $imageInfo = @getimagesize($logoPath);
+                if ($imageData !== false && $imageInfo !== false && isset($imageInfo['mime'])) {
+                    $logoBase64 = 'data:' . $imageInfo['mime'] . ';base64,' . base64_encode($imageData);
+                }
+            }
+        }
+
+        return [$company, $logoBase64];
     }
 }
 
