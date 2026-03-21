@@ -3591,6 +3591,15 @@ Route::prefix('projects')->name('projects.')->middleware(['auth', 'company.scope
     Route::get('/donor-assignments/create', [ProjectController::class, 'donorAssignmentsCreate'])->name('donor-assignments.create');
     Route::post('/donor-assignments', [ProjectController::class, 'assignDonor'])->name('donor-assignments.store');
 
+    // Donor CRUD (uses customers table)
+    Route::get('/donors', [\App\Http\Controllers\DonorController::class, 'index'])->name('donors.index');
+    Route::get('/donors/create', [\App\Http\Controllers\DonorController::class, 'create'])->name('donors.create');
+    Route::post('/donors', [\App\Http\Controllers\DonorController::class, 'store'])->name('donors.store');
+    Route::get('/donors/{donor}', [\App\Http\Controllers\DonorController::class, 'show'])->name('donors.show');
+    Route::get('/donors/{donor}/edit', [\App\Http\Controllers\DonorController::class, 'edit'])->name('donors.edit');
+    Route::put('/donors/{donor}', [\App\Http\Controllers\DonorController::class, 'update'])->name('donors.update');
+    Route::delete('/donors/{donor}', [\App\Http\Controllers\DonorController::class, 'destroy'])->name('donors.destroy');
+
     // Project receipts and payments reports
     Route::post('/reports/receipts/export-pdf', [ProjectController::class, 'projectReceiptsExportPdf'])->name('reports.receipts.export-pdf');
     Route::post('/reports/receipts/export-excel', [ProjectController::class, 'projectReceiptsExportExcel'])->name('reports.receipts.export-excel');

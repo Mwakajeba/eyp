@@ -177,7 +177,27 @@
                                 </div>
                             </div>
 
-                            <!-- 3. AUC / WIP Ledger -->
+                            <!-- 3. Donor Details -->
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card border-secondary position-relative h-100">
+                                    <div class="card-body text-center">
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
+                                            {{ $donorCount ?? 0 }}
+                                            <span class="visually-hidden">donors count</span>
+                                        </span>
+                                        <div class="mb-3">
+                                            <i class="bx bx-donate-heart fs-1 text-secondary"></i>
+                                        </div>
+                                        <h5 class="card-title">Donor Details</h5>
+                                        <p class="card-text">Create, manage, and view donor profiles. Donors are linked to projects for fund tracking and utilization reporting.</p>
+                                        <a href="{{ route('projects.donors.index') }}" class="btn btn-secondary">
+                                            <i class="bx bx-group me-1"></i> Manage Donors
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3b. AUC / WIP Ledger -->
                             <!-- <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-info position-relative h-100">
                                     <div class="card-body text-center">

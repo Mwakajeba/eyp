@@ -54,7 +54,11 @@ class Customer extends Model
         return $this->hasMany(CashDeposit::class);
     }
 
-
+    public function donorProjects()
+    {
+        return $this->belongsToMany(Project::class, 'donor_project_assignments', 'customer_id', 'project_id')
+            ->withTimestamps();
+    }
 
     // Mutator for customer number
     public function setCustomerNoAttribute($value)
