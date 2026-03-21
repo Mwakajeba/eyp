@@ -751,6 +751,23 @@ class RolePermissionSeeder extends Seeder
             'view store returns',
             'manage store requisition approval settings',
 
+            // Project Management
+            'view projects',
+            'create project',
+            'edit project',
+            'delete project',
+            'view project activities',
+            'create project activity',
+            'edit project activity',
+            'delete project activity',
+            'view donors',
+            'create donor',
+            'edit donor',
+            'delete donor',
+            'manage donor assignments',
+            'view project reports',
+            'export project reports',
+
         ];
 
         // Create or update permissions in both custom Permission table and Spatie table

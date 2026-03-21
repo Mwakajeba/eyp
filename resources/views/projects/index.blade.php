@@ -3,6 +3,7 @@
 @section('title', 'Project Management')
 
 @section('content')
+@can('view projects')
 <div class="page-wrapper">
     <div class="page-content">
         <x-breadcrumbs-with-icons :links="[
@@ -12,6 +13,7 @@
         <h6 class="mb-0 text-uppercase">PROJECT MANAGEMENT</h6>
         <hr />
         <!-- Project Receipts & Payments Reports -->
+        @can('view project reports')
         <div class="row">
             <div class="col-12 col-lg-6 mb-4">
                 <div class="card border-top border-0 border-4 border-success h-100">
@@ -119,6 +121,7 @@
                 </div>
             </div>
         </div>
+        @endcan
 
         <!-- Project Management Modules -->
         <div class="row">
@@ -132,6 +135,7 @@
                         <hr>
                         <div class="row">
                             <!-- 1. Project Setup & WBS -->
+                            @can('create project')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-primary position-relative h-100">
                                     <div class="card-body text-center">
@@ -153,8 +157,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- 2. Project Activities -->
+                            @can('view project activities')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-success position-relative h-100">
                                     <div class="card-body text-center">
@@ -176,8 +182,10 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
                             <!-- 3. Donor Details -->
+                            @can('view donors')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-secondary position-relative h-100">
                                     <div class="card-body text-center">
@@ -196,203 +204,28 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
 
-                            <!-- 3b. AUC / WIP Ledger -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
+                            <!-- 4. Donor Fund Management -->
+                            @can('manage donor assignments')
+                            <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-info position-relative h-100">
                                     <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
-                                            @php
-                                                $aucCount = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $aucCount }}
-                                            <span class="visually-hidden">AUC accounts count</span>
-                                        </span>
                                         <div class="mb-3">
-                                            <i class="bx bx-layer fs-1 text-info"></i>
-                                        </div>
-                                        <h5 class="card-title">AUC / WIP Ledger</h5>
-                                        <p class="card-text">View balances, drill into cost lines, aging analysis, and select for capitalization.</p>
-                                        <a href="#" class="btn btn-info">
-                                            <i class="bx bx-book-open me-1"></i> View Ledger
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 4. Capitalization Requests -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-warning position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                                            @php
-                                                $capRequests = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $capRequests }}
-                                            <span class="visually-hidden">capitalization requests count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-transfer fs-1 text-warning"></i>
-                                        </div>
-                                        <h5 class="card-title">Capitalization Requests</h5>
-                                        <p class="card-text">Select AUC/cost lines → intended use → attachments → preview journals → submit for approval.</p>
-                                        <a href="#" class="btn btn-warning">
-                                            <i class="bx bx-file me-1"></i> Create Request
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 5. Approval Inbox -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-danger position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                            @php
-                                                $pendingApprovals = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $pendingApprovals }}
-                                            <span class="visually-hidden">pending approvals count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-check-circle fs-1 text-danger"></i>
-                                        </div>
-                                        <h5 class="card-title">Approval Inbox</h5>
-                                        <p class="card-text">Review and approve/reject capitalization requests, budget changes, and project changes.</p>
-                                        <a href="#" class="btn btn-danger">
-                                            <i class="bx bx-inbox me-1"></i> View Approvals
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 6. Billing & Revenue -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-purple position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-purple">
-                                            @php
-                                                $projectInvoices = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $projectInvoices }}
-                                            <span class="visually-hidden">project invoices count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-money fs-1 text-purple"></i>
-                                        </div>
-                                        <h5 class="card-title">Billing & Revenue</h5>
-                                        <p class="card-text">External project invoicing, milestone billing, revenue recognition, WIP to COGS.</p>
-                                        <a href="#" class="btn btn-purple">
-                                            <i class="bx bx-receipt me-1"></i> Manage Billing
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 7. Donor Fund Management -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-secondary position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
-                                            @php
-                                                $donorFunds = 0;
-                                                // TODO: Replace with actual count when implemented
-                                                // $donorFunds = \App\Models\Project\DonorFund::forCompany($companyId)
-                                                //     ->when($branchId, fn($q) => $q->forBranch($branchId))
-                                                //     ->count();
-                                            @endphp
-                                            {{ $donorFunds }}
-                                            <span class="visually-hidden">donor funds count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-donate-heart fs-1 text-secondary"></i>
+                                            <i class="bx bx-donate-heart fs-1 text-info"></i>
                                         </div>
                                         <h5 class="card-title">Donor Fund Management</h5>
-                                        <p class="card-text">Track disbursements, restrictions, matching recognition, and generate donor reports.</p>
-                                        <a href="{{ route('projects.donor-assignments.create') }}" class="btn btn-secondary">
+                                        <p class="card-text">Assign donors to projects, track disbursements, restrictions, matching recognition, and generate donor reports.</p>
+                                        <a href="{{ route('projects.donor-assignments.create') }}" class="btn btn-info">
                                             <i class="bx bx-money-withdraw me-1"></i> Manage Funds
                                         </a>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
+                            @endcan
 
-                            <!-- 8. Timesheets & Resources -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-info position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
-                                            @php
-                                                $timesheets = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $timesheets }}
-                                            <span class="visually-hidden">timesheets count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-time-five fs-1 text-info"></i>
-                                        </div>
-                                        <h5 class="card-title">Timesheets & Resources</h5>
-                                        <p class="card-text">Submit, approve, and post labor costs to projects. Resource allocation and utilization tracking.</p>
-                                        <a href="#" class="btn btn-info">
-                                            <i class="bx bx-calendar-check me-1"></i> Manage Timesheets
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 9. Procurement Integration -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-success position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                                            @php
-                                                $projectPOs = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $projectPOs }}
-                                            <span class="visually-hidden">project POs count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-purchase-tag fs-1 text-success"></i>
-                                        </div>
-                                        <h5 class="card-title">Procurement Integration</h5>
-                                        <p class="card-text">Link purchase orders to projects/WBS. Track commitments and auto-create cost lines.</p>
-                                        <a href="#" class="btn btn-success">
-                                            <i class="bx bx-link me-1"></i> Link POs
-                                        </a>
-                                    </div>
-                                </div> -->
-                            <!-- </div>--> 
-
-                            <!-- 10. Fixed Asset Creation -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-primary position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-                                            @php
-                                                $capitalizedAssets = 0;
-                                                // TODO: Replace with actual count when implemented
-                                            @endphp
-                                            {{ $capitalizedAssets }}
-                                            <span class="visually-hidden">capitalized assets count</span>
-                                        </span>
-                                        <div class="mb-3">
-                                            <i class="bx bx-cabinet fs-1 text-primary"></i>
-                                        </div>
-                                        <h5 class="card-title">Fixed Asset Creation</h5>
-                                        <p class="card-text">Post-capitalization review, asset tagging, depreciation setup, and tax book updates.</p>
-                                        <a href="#" class="btn btn-primary">
-                                            <i class="bx bx-check-square me-1"></i> Review Assets
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
-
-                            <!-- 11. Reports & Analytics -->
+                            <!-- 5. Reports & Analytics -->
+                            @can('view project reports')
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card border-danger position-relative h-100">
                                     <div class="card-body text-center">
@@ -407,22 +240,7 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- 12. Settings & Configuration -->
-                            <!-- <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card border-dark position-relative h-100">
-                                    <div class="card-body text-center">
-                                        <div class="mb-3">
-                                            <i class="bx bx-cog fs-1 text-dark"></i>
-                                        </div>
-                                        <h5 class="card-title">Settings & Configuration</h5>
-                                        <p class="card-text">GL mappings, approval matrices, thresholds, tax settings, document templates, and workflows.</p>
-                                        <a href="#" class="btn btn-dark">
-                                            <i class="bx bx-cog me-1"></i> Configure
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> -->
+                            @endcan
 
                         </div>
                     </div>
@@ -432,6 +250,7 @@
 
     </div>
 </div>
+@endcan
 @endsection
 
 @push('styles')

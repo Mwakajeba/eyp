@@ -137,6 +137,15 @@ class PermissionGroupsSeeder extends Seeder
                 'sort_order' => 13,
                 'is_active' => true
             ],
+            [
+                'name' => 'projects',
+                'display_name' => 'Project Management',
+                'description' => 'Projects, activities, donors, assignments and project reports',
+                'color' => '#0d6efd',
+                'icon' => 'bx bx-briefcase',
+                'sort_order' => 15,
+                'is_active' => true
+            ],
         ];
 
         // Create permission groups
@@ -733,6 +742,23 @@ class PermissionGroupsSeeder extends Seeder
                     'view store returns',
                     'manage store requisition approval settings',
                 ],
+            'projects' => [
+                'view projects',
+                'create project',
+                'edit project',
+                'delete project',
+                'view project activities',
+                'create project activity',
+                'edit project activity',
+                'delete project activity',
+                'view donors',
+                'create donor',
+                'edit donor',
+                'delete donor',
+                'manage donor assignments',
+                'view project reports',
+                'export project reports',
+            ],
             'settings' => [
                 'view settings',
                 'edit settings',
