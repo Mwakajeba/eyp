@@ -16,6 +16,7 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\Hr\LeaveType::class => \App\Policies\Leave\LeaveTypePolicy::class,
         \App\Models\Hr\LeaveRequest::class => \App\Policies\Leave\LeaveRequestPolicy::class,
         \App\Models\Hr\LeaveBalance::class => \App\Policies\Leave\LeaveBalancePolicy::class,
+        \App\Models\ImprestRequest::class => \App\Policies\ImprestRequestPolicy::class,
     ];
 
     /**

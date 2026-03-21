@@ -724,6 +724,8 @@ class RolePermissionSeeder extends Seeder
 
             // Imprest Management
             'view imprest requests',
+            'view own imprests',
+            'view all imprests',
             'create imprest request',
             'edit imprest request',
             'delete imprest request',
