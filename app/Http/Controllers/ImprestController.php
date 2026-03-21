@@ -571,7 +571,7 @@ class ImprestController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if (!in_array($imprestRequest->status, ['disbursed', 'retired', 'closed'])) {
+        if (!in_array($imprestRequest->status, ['disbursed', 'liquidated', 'closed'])) {
             return back()->with('error', 'Activity reports can only be uploaded after disbursement.');
         }
 

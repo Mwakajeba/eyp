@@ -157,7 +157,7 @@
                 </div>
 
                 <!-- Activity Reports Card -->
-                @if(in_array($imprestRequest->status, ['disbursed', 'retired', 'closed']))
+                @if(in_array($imprestRequest->status, ['disbursed', 'liquidated', 'closed']))
                 <div class="card mb-4">
                     <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                         <h6 class="mb-0"><i class="bx bx-file me-2"></i>Imprest Activity Reports</h6>
@@ -623,7 +623,7 @@
 </form>
 
 <!-- Upload Activity Report Modal -->
-@if(in_array($imprestRequest->status, ['disbursed', 'retired', 'closed']))
+@if(in_array($imprestRequest->status, ['disbursed', 'liquidated', 'closed']))
 <div class="modal fade" id="uploadActivityReportModal" tabindex="-1" aria-labelledby="uploadActivityReportModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
