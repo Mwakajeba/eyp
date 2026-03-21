@@ -230,9 +230,28 @@
                             ->limit(5)
                             ->get();
                     }
+                    // Get imprest requests with retirement end date in arrears
+                    $imprestArrears = collect([]);
+                    $imprestArrearsCount = 0;
+                    if (auth()->check()) {
+                        $imprestArrearsQuery = \App\Models\ImprestRequest::with(['employee'])
+                            ->where('company_id', auth()->user()->company_id)
+                            ->where('status', 'disbursed')
+                            ->whereNotNull('retirement_end_date')
+                            ->where('retirement_end_date', '<', $today);
+
+                        if (auth()->user()->branch_id) {
+                            $imprestArrearsQuery->where('branch_id', auth()->user()->branch_id);
+                        }
+
+                        $imprestArrearsCount = (clone $imprestArrearsQuery)->count();
+                        $imprestArrears = $imprestArrearsQuery->orderBy('retirement_end_date', 'asc')
+                            ->limit(10)
+                            ->get();
+                    }
                     @endphp
                     <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span class="alert-count" id="navbarNotificationCount">{{$dueSchedules->count() + $expiringItemsCount}}</span>
+                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span class="alert-count" id="navbarNotificationCount">{{$dueSchedules->count() + $expiringItemsCount + $imprestArrearsCount}}</span>
                             <i class='bx bx-bell'></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
@@ -275,6 +294,29 @@
                                                 </span>
                                             </h6>
                                             <p class="msg-info">Batch: {{ $item->batch_number }} - Expires: {{ \Carbon\Carbon::parse($item->expiry_date)->format('M d, Y') }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                                @endforeach
+                                @endif
+
+                                <!-- Imprest Retirement Arrears Section -->
+                                @if($imprestArrears->count() > 0)
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-header">
+                                    <small class="text-danger fw-bold">Imprest Retirement Arrears</small>
+                                </div>
+                                @foreach($imprestArrears as $arrear)
+                                <a class="dropdown-item" href="{{ route('imprest.requests.show', \Vinkla\Hashids\Facades\Hashids::encode($arrear->id)) }}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="notify bg-light-danger text-danger">
+                                            <i class="bx bx-error-circle"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="msg-name">{{ $arrear->employee->name ?? 'N/A' }}
+                                                <span class="msg-time float-end text-danger">{{ (int) \Carbon\Carbon::parse($arrear->retirement_end_date)->diffInDays(now()) }} days overdue</span>
+                                            </h6>
+                                            <p class="msg-info">{{ $arrear->request_number }} - TZS {{ number_format($arrear->disbursed_amount ?? $arrear->amount_requested, 2) }}</p>
                                         </div>
                                     </div>
                                 </a>
