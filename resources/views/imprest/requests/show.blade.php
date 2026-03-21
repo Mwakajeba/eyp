@@ -156,6 +156,59 @@
                     </div>
                 </div>
 
+                <!-- Activity Reports Card -->
+                @if(in_array($imprestRequest->status, ['disbursed', 'retired', 'closed']))
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bx bx-file me-2"></i>Imprest Activity Reports</h6>
+                        <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#uploadActivityReportModal">
+                            <i class="bx bx-upload me-1"></i> Upload Report
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if($imprestRequest->activityReports && $imprestRequest->activityReports->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Description</th>
+                                        <th>File Name</th>
+                                        <th>Type</th>
+                                        <th>Uploaded By</th>
+                                        <th>Date</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($imprestRequest->activityReports as $index => $report)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $report->description }}</td>
+                                        <td>{{ $report->file_name }}</td>
+                                        <td><span class="badge bg-{{ $report->file_type === 'pdf' ? 'danger' : 'primary' }}">{{ strtoupper($report->file_type) }}</span></td>
+                                        <td>{{ $report->uploader->name ?? 'N/A' }}</td>
+                                        <td>{{ $report->created_at->format('M d, Y H:i') }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ route('imprest.requests.activity-report.download', [Hashids::encode($imprestRequest->id), $report->id]) }}" class="btn btn-sm btn-outline-success" title="Download">
+                                                <i class="bx bx-download"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @else
+                        <div class="alert alert-info mb-0">
+                            <i class="bx bx-info-circle me-1"></i>
+                            No activity reports uploaded yet.
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <!-- Status History Card (if there's status progression) -->
                 @if($imprestRequest->checked_at || $imprestRequest->approved_at || $imprestRequest->rejected_at)
                 <div class="card mb-4">
@@ -568,6 +621,44 @@
     @csrf
     @method('DELETE')
 </form>
+
+<!-- Upload Activity Report Modal -->
+@if(in_array($imprestRequest->status, ['disbursed', 'retired', 'closed']))
+<div class="modal fade" id="uploadActivityReportModal" tabindex="-1" aria-labelledby="uploadActivityReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadActivityReportModalLabel">
+                    <i class="bx bx-upload me-2"></i>Upload Activity Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('imprest.requests.activity-report.store', Hashids::encode($imprestRequest->id)) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="reportDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="reportDescription" name="description" rows="3"
+                                  placeholder="Describe the activity report..." required maxlength="500"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reportFile" class="form-label">File (PDF or DOCX) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="reportFile" name="report_file"
+                               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+                        <div class="form-text">Maximum file size: 10MB. Only PDF and DOCX files are allowed.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-upload me-1"></i>Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('styles')

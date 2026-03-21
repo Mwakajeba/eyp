@@ -153,6 +153,11 @@ class ImprestRequest extends Model
         return $this->hasMany(ImprestApproval::class);
     }
 
+    public function activityReports(): HasMany
+    {
+        return $this->hasMany(ImprestActivityReport::class);
+    }
+
     // Scopes
     public function scopeForCompany($query, $companyId)
     {

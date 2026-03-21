@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ImprestRequest;
+use App\Models\ImprestActivityReport;
 use App\Models\ImprestDisbursement;
 use App\Models\ImprestLiquidation;
 use App\Models\ImprestDocument;
@@ -509,7 +510,8 @@ class ImprestController extends Controller
             'liquidation.approver',
             'documents.uploader',
             'journalEntries.debitAccount',
-            'journalEntries.creditAccount'
+            'journalEntries.creditAccount',
+            'activityReports.uploader'
         ])->findOrFail($decodedId);
 
         // Check if user can view this request
@@ -557,6 +559,58 @@ class ImprestController extends Controller
             'completedApprovals',
             'requiredApprovalLevels'
         ));
+    }
+
+    public function storeActivityReport(Request $request, $id)
+    {
+        $decodedId = Hashids::decode($id)[0] ?? $id;
+        $imprestRequest = ImprestRequest::findOrFail($decodedId);
+
+        $user = Auth::user();
+        if ($imprestRequest->company_id !== $user->company_id && !$user->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!in_array($imprestRequest->status, ['disbursed', 'retired', 'closed'])) {
+            return back()->with('error', 'Activity reports can only be uploaded after disbursement.');
+        }
+
+        $request->validate([
+            'description' => 'required|string|max:500',
+            'report_file' => 'required|file|mimes:pdf,docx|max:10240',
+        ]);
+
+        $file = $request->file('report_file');
+        $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+        $path = $file->storeAs('imprest_activity_reports/' . $imprestRequest->id, $fileName, 'local');
+
+        ImprestActivityReport::create([
+            'imprest_request_id' => $imprestRequest->id,
+            'uploaded_by' => $user->id,
+            'description' => $request->description,
+            'file_name' => $file->getClientOriginalName(),
+            'file_path' => $path,
+            'file_type' => $file->getClientOriginalExtension(),
+            'file_size' => $file->getSize(),
+        ]);
+
+        return back()->with('success', 'Activity report uploaded successfully.');
+    }
+
+    public function downloadActivityReport($id, $reportId)
+    {
+        $decodedId = Hashids::decode($id)[0] ?? $id;
+        $imprestRequest = ImprestRequest::findOrFail($decodedId);
+
+        $user = Auth::user();
+        if ($imprestRequest->company_id !== $user->company_id && !$user->hasRole('Super Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $report = ImprestActivityReport::where('imprest_request_id', $imprestRequest->id)
+            ->findOrFail($reportId);
+
+        return response()->download(storage_path('app/' . $report->file_path), $report->file_name);
     }
 
     /**
