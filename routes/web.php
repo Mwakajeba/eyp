@@ -2630,6 +2630,8 @@ Route::prefix('imprest')->name('imprest.')->middleware('auth')->group(function (
         Route::delete('/{id}', [App\Http\Controllers\ImprestController::class, 'destroy'])->name('destroy');
         Route::get('/{id}/export-pdf', [App\Http\Controllers\ImprestController::class, 'exportPdf'])->name('export-pdf');
         Route::get('/{id}/print', [App\Http\Controllers\ImprestController::class, 'print'])->name('print');
+        Route::post('/{id}/activity-reports', [App\Http\Controllers\ImprestController::class, 'storeActivityReport'])->name('activity-report.store');
+        Route::get('/{id}/activity-reports/{reportId}/download', [App\Http\Controllers\ImprestController::class, 'downloadActivityReport'])->name('activity-report.download');
     });
 
     // Manager Check Actions
