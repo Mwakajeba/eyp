@@ -260,6 +260,7 @@ class ImprestActionController extends Controller
                 'payee_id' => $imprestRequest->employee_id,
                 'payee_name' => $imprestRequest->employee->name ?? 'Employee',
                 'branch_id' => $imprestRequest->branch_id,
+                'project_id' => $imprestRequest->project_id,
                 'user_id' => $user->id,
                 'approved' => true, // Always auto-approve - imprest already approved
                 'approved_by' => $user->id,
@@ -287,6 +288,7 @@ class ImprestActionController extends Controller
                 'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest disbursement: {$imprestRequest->request_number}",
                 'branch_id' => $imprestRequest->branch_id,
+                'project_id' => $imprestRequest->project_id,
                 'user_id' => $user->id,
             ]);
 
@@ -300,6 +302,7 @@ class ImprestActionController extends Controller
                 'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest advance to {$imprestRequest->employee->name}",
                 'branch_id' => $imprestRequest->branch_id,
+                'project_id' => $imprestRequest->project_id,
                 'user_id' => $user->id,
             ]);
 
@@ -380,6 +383,7 @@ class ImprestActionController extends Controller
                 'payee_id' => $imprestRequest->employee_id,
                 'payee_name' => $imprestRequest->employee->name ?? 'Employee',
                 'branch_id' => $branchId,
+                'project_id' => $imprestRequest->project_id,
                 'user_id' => $user->id,
                 'approved' => true,
                 'approved_by' => $user->id,
@@ -409,6 +413,7 @@ class ImprestActionController extends Controller
                 'date' => $disbursementDate->toDateString(),
                 'description' => "Imprest expense payment: {$imprestRequest->request_number}",
                 'branch_id' => $branchId,
+                'project_id' => $imprestRequest->project_id,
                 'user_id' => $user->id,
             ]);
 
@@ -423,6 +428,7 @@ class ImprestActionController extends Controller
                     'date' => $disbursementDate->toDateString(),
                     'description' => "Imprest expense: {$item->chartAccount->account_name}",
                     'branch_id' => $branchId,
+                    'project_id' => $imprestRequest->project_id,
                     'user_id' => $user->id,
                 ]);
             }
