@@ -278,6 +278,20 @@ class ImprestController extends Controller
         // Budget validation and preparation (moved outside transaction)
         $user = Auth::user();
 
+        // Check if user has any imprest in arrears (retirement end date past due)
+        $arrearsCount = ImprestRequest::where('company_id', $user->company_id)
+            ->where('employee_id', $user->id)
+            ->where('status', 'disbursed')
+            ->whereNotNull('retirement_end_date')
+            ->where('retirement_end_date', '<', now()->toDateString())
+            ->count();
+
+        if ($arrearsCount > 0) {
+            return back()->withInput()->withErrors([
+                'error' => "You have {$arrearsCount} imprest request(s) with overdue retirement. Please retire outstanding imprests before creating a new one."
+            ]);
+        }
+
         // Calculate total from items to validate against amount_requested
         $itemsTotal = collect($request->items)->sum('amount');
 
