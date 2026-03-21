@@ -34,7 +34,9 @@ class ProjectController extends Controller
 
         $activityCount = ProjectActivity::forCompany($companyId)->count();
 
-        return view('projects.index', compact('projects', 'activityCount'));
+        $donorCount = Customer::where('company_id', $companyId)->count();
+
+        return view('projects.index', compact('projects', 'activityCount', 'donorCount'));
     }
 
     public function activityIndex(Request $request)
