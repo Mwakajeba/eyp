@@ -129,8 +129,7 @@
                                 class="form-control @error('date_required') is-invalid @enderror"
                                 id="date_required"
                                 name="date_required"
-                                value="{{ old('date_required', date('Y-m-d', strtotime('+1 day'))) }}"
-                                min="{{ date('Y-m-d') }}"
+                                value="{{ old('date_required', date('Y-m-d')) }}"
                                 required>
                             @error('date_required')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -503,10 +502,6 @@ $(document).ready(function() {
 
     // Trigger character counter on page load
     $('#purpose').trigger('input');
-
-    // Set minimum date to today
-    const today = new Date().toISOString().split('T')[0];
-    $('#date_required').attr('min', today);
 
     // Initialize select2 for department and chart account
     $('#department_id').select2({
