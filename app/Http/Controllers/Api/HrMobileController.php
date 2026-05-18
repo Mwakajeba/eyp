@@ -677,7 +677,7 @@ class HrMobileController extends Controller
             'department_id' => 'required|exists:hr_departments,id',
             'purpose' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'date_required' => 'required|date|after_or_equal:today',
+            'date_required' => 'required|date',
             'items' => 'required|array|min:1',
             'items.*.chart_account_id' => 'required|exists:chart_accounts,id',
             'items.*.amount' => 'required|numeric|min:1',
